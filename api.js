@@ -71,7 +71,7 @@ router.get("/history", async function(req, res) {
 
 router.post("/history", async function(req, res) {
     const client = newDBClient();
-    const newHistory = await client.query(makePushHistoryQuery(req.body.userID, req.body.actionName, req.body.private, req.body.relatedTaskID || null)).rows[0];
+    const newHistory = await client.query(makePushHistoryQuery(req.body.userID, req.body.title, req.body.private, req.body.relatedTaskID || null)).rows[0];
     await client.end();
     res.send(newHistory);
 });
