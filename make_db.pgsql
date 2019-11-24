@@ -1,10 +1,10 @@
 CREATE TABLE IF NOT EXISTS "public.task" (
     "id"                SERIAL      NOT NULL    PRIMARY KEY
+,   "owner"             INT         NOT NULL    REFERENCES "public.user" (id)
 ,   "name"              TEXT        NOT NULL
 ,   "percent_complete"  REAL                                                     -- from 0 to 1
 ,   "minutes_spent"     INT
-,   "minutes_remaining" INT
-,   "completion_date"   TIMESTAMPTZ
+,   "was_completed_at"  TIMESTAMPTZ
 ,   "creation_date"     TIMESTAMPTZ NOT NULL
 ,   "private"           BOOLEAN
 );
@@ -29,7 +29,7 @@ CREATE TABLE IF NOT EXISTS "public.auth" (
 CREATE TABLE IF NOT EXISTS "public.task_owners" ( -- created to remove circular foreign keys between task and user
     "id"                SERIAL      NOT NULL    PRIMARY KEY
 ,   "owner"             INT         NOT NULL    REFERENCES "public.user" (id)
-,   "task "             INT         NOT NULL    REFERENCES "public.task" (id)
+,   "task"              INT         NOT NULL    REFERENCES "public.task" (id)
 );
 
 CREATE TABLE IF NOT EXISTS "public.team" (
@@ -46,6 +46,7 @@ CREATE TABLE IF NOT EXISTS "public.team_members" (
 
 CREATE TABLE IF NOT EXISTS "public.history" (
     "id"                SERIAL      NOT NULL    PRIMARY KEY
+,   "user"              INT         NOT NULL    REFERENCES "public.user" (id)
 ,   "action"            TEXT        NOT NULL
 ,   "time"              TIMESTAMPTZ NOT NULL
 ,   "private"           BOOLEAN     NOT NULL

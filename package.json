@@ -10,7 +10,15 @@
     "lint": "vue-cli-service lint"
   },
   "dependencies": {
+    "axios": "^0.19.0",
+    "cookie-parser": "^1.4.4",
     "core-js": "^3.3.2",
+    "dotenv": "^8.2.0",
+    "express": "^4.17.1",
+    "http-errors": "^1.7.3",
+    "morgan": "^1.9.1",
+    "path": "^0.12.7",
+    "pg": "^7.14.0",
     "vue": "^2.6.10",
     "vue-class-component": "^7.0.2",
     "vue-feather-icons": "^5.0.0",
