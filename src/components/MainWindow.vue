@@ -14,6 +14,7 @@
         p.subject {{ subject }}
         #stats
             ClockIcon
+    button(@click="test") Test
 </template>
 
 <script lang="ts">
@@ -22,8 +23,7 @@ import { ClockIcon, EditIcon, CheckIcon } from "vue-feather-icons";
 import { Component, Prop, Vue } from "vue-property-decorator";
 import { WorkingStatus } from "@/enums/WorkingStatus";
 import { Events } from "@/enums/Events";
-
-const historyPushEvent = 'history-push';
+import HttpService from "@/services/HttpService";
 
 @Component({
     components: {
@@ -50,12 +50,10 @@ export default class MainWindow extends Vue {
         this.editing = false;
     }
 
-    changeStatus() {
-
-    }
+    changeStatus() {}
 
     pushHistory() {
-        this.$emit(Events.HistoryPush, )
+        this.$emit(Events.HistoryPush, null);
     }
 }
 </script>

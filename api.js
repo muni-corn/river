@@ -2,7 +2,15 @@ var express = require("express");
 var router = express.Router();
 
 const { Client } = require("pg");
-const { makeStartQuery, makeNewTaskQuery, makeStopQuery, makeLinkTaskOwnerQuery, makePushHistoryQuery, makeUpdateTaskQuery, makeUpdateHistoryItemQuery } = require("./queries");
+const {
+    makeStartQuery,
+    makeNewTaskQuery,
+    makeStopQuery,
+    makeLinkTaskOwnerQuery,
+    makePushHistoryQuery,
+    makeUpdateTaskQuery,
+    makeUpdateHistoryItemQuery
+} = require("./queries");
 
 function newDBClient() {
     return new Client({
@@ -17,7 +25,9 @@ router.get("/test", function(_, res) {
 router.post("/start", async function(req, res) {
     const client = newDBClient();
     await client.connect();
-    const updated = await client.query(makeStartQuery(req.body.taskID, req.body.userID)).rows[0];
+    const updated = await client.query(
+        makeStartQuery(req.body.taskID, req.body.userID)
+    ).rows[0];
     await client.end();
     res.send(updated);
 });
@@ -25,7 +35,9 @@ router.post("/start", async function(req, res) {
 router.post("/stop", async function(req, res) {
     const client = newDBClient();
     await client.connect();
-    const updated = await client.query(makeStopQuery(req.body.reason, req.body.userID)).rows[0];
+    const updated = await client.query(
+        makeStopQuery(req.body.reason, req.body.userID)
+    ).rows[0];
     await client.end();
     res.send(updated);
 });
@@ -35,7 +47,11 @@ router.post("/newTask", async function(req, res) {
     await client.connect();
     try {
         await client.query("BEGIN");
-        const task = (await client.query(makeNewTaskQuery(req.body.taskTitle, req.body.private))).rows[0];
+        const task = (
+            await client.query(
+                makeNewTaskQuery(req.body.taskTitle, req.body.private)
+            )
+        ).rows[0];
         await client.query(makeLinkTaskOwnerQuery(req.body.userID, task.id));
         await client.query("COMMIT");
         res.send(task);
@@ -49,29 +65,56 @@ router.post("/newTask", async function(req, res) {
 
 router.post("/updateTask", async function(req, res) {
     const client = newDBClient();
-    const { id, name, percentComplete, minutesSpent, wasCompletedAt, private } = req.body.task;
-    const newTask = await client.query(makeUpdateTaskQuery(id, name, percentComplete, minutesSpent, wasCompletedAt, private)).rows[0];
+    const {
+        id,
+        name,
+        percentComplete,
+        minutesSpent,
+        wasCompletedAt,
+        private
+    } = req.body.task;
+    const newTask = await client.query(
+        makeUpdateTaskQuery(
+            id,
+            name,
+            percentComplete,
+            minutesSpent,
+            wasCompletedAt,
+            private
+        )
+    ).rows[0];
     await client.end();
     res.send(newTask);
 });
 
 router.post("/updateHistoryItem", async function(req, res) {
     const client = newDBClient();
-    const newHistoryItem = await client.query(makeUpdateHistoryItemQuery(req.body.historyID, req.body.private)).rows[0];
+    const newHistoryItem = await client.query(
+        makeUpdateHistoryItemQuery(req.body.historyID, req.body.private)
+    ).rows[0];
     await client.end();
     res.send(newHistoryItem);
 });
 
 router.get("/history", async function(req, res) {
     const client = newDBClient();
-    const result = await client.query(makeGetHistoryQuery(req.body.userID, req.body.offset, req.body.limit));
+    const result = await client.query(
+        makeGetHistoryQuery(req.body.userID, req.body.offset, req.body.limit)
+    );
     await client.end();
     res.send(result.rows);
 });
 
 router.post("/history", async function(req, res) {
     const client = newDBClient();
-    const newHistory = await client.query(makePushHistoryQuery(req.body.userID, req.body.title, req.body.private, req.body.relatedTaskID || null)).rows[0];
+    const newHistory = await client.query(
+        makePushHistoryQuery(
+            req.body.userID,
+            req.body.title,
+            req.body.private,
+            req.body.relatedTaskID || null
+        )
+    ).rows[0];
     await client.end();
     res.send(newHistory);
 });
@@ -85,7 +128,8 @@ router.get("/tasks", async function(req, res) {
 
 router.get("/singleTask", async function(req, res) {
     const client = newDBClient();
-    const task = await client.query(makeGetSingleTaskQuery(req.body.taskID)).rows[0];
+    const task = await client.query(makeGetSingleTaskQuery(req.body.taskID))
+        .rows[0];
     await client.end();
     res.send(task);
 });

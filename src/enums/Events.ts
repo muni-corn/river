@@ -1,3 +1,3 @@
 export enum Events {
-    HistoryPush = 'history-push'
+    HistoryPush = "history-push"
 }
