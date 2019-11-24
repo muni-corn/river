@@ -14,7 +14,6 @@
         p.subject {{ subject }}
         #stats
             ClockIcon
-    button(@click="test") Test
 </template>
 
 <script lang="ts">
