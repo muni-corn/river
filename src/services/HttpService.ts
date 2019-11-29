@@ -13,7 +13,7 @@ export default class HttpService {
         userID: number,
         title: string,
         priv: boolean,
-        relatedTaskID: number
+        relatedTaskID: number | null
     ): Promise<HistoryListItem> {
         const body = {
             userID,

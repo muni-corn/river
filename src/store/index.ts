@@ -21,11 +21,12 @@ export default new Vuex.Store({
             { commit, state },
             newItem: HistoryListItem
         ) {
-            HttpService.pushHistory(
+            const taskID = newItem.relatedTask ? newItem.relatedTask.id : null;
+            await HttpService.pushHistory(
                 state.userID,
                 newItem.title,
-                newItem.private,
-                newItem.relatedTask.id
+                newItem.priv || false,
+                taskID
             );
             commit(StoreActions.HistoryPush, newItem);
         }
