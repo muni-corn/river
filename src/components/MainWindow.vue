@@ -1,5 +1,5 @@
 <template lang="pug">
-#card
+.card
     #edit(v-if="editing")
         CheckIcon.clickable(@click="stopEdit()", style="float: right;")
         select.status(v-model="status") {{ status.toString() }}
@@ -23,12 +23,14 @@ import { Component, Prop, Vue } from "vue-property-decorator";
 import { WorkingStatus } from "@/enums/WorkingStatus";
 import { Events } from "@/enums/Events";
 import HttpService from "@/services/HttpService";
+import HistoryList from "@/components/HistoryList.vue";
 
 @Component({
     components: {
         ClockIcon,
         EditIcon,
-        CheckIcon
+        CheckIcon,
+        HistoryList
     }
 })
 export default class MainWindow extends Vue {
@@ -58,15 +60,11 @@ export default class MainWindow extends Vue {
 </script>
 
 <style scoped lang="stylus">
-#card
+.card
+    background white
     display block
     width 40%
     height auto
-    border-radius 24px
-    background white
-    margin 0 auto
-    box-shadow 0 16px 32px rgba(0, 0, 0, 0.25);
-    padding 32px
 
 .status
     display block

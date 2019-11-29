@@ -5,12 +5,12 @@ div
 
 <script lang="ts">
 import Vue from "vue";
-import Main from "@/components/Main.vue";
+import Column from "@/components/Column.vue";
 
 export default Vue.extend({
     name: "home",
     components: {
-        Main
+        Column
     }
 });
 </script>
