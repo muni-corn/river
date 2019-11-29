@@ -1,6 +1,6 @@
 <template lang="pug">
 div
-    Main
+    Column
 </template>
 
 <script lang="ts">
