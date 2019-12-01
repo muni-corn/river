@@ -4,9 +4,9 @@
         BookOpenIcon.icon(size="24")
         span History
     transition(name="expand")
-        p.nothing(v-if="expanded && data.length === 0") No history
+        p.nothing(v-if="expanded && getData().length === 0") No history
         ul(v-else-if="expanded")
-            li(v-for="d of data")
+            li(v-for="d of getData()")
                 p.small {{ getDateString(d.at) }}
                 p.title {{ d.title }}
 </template>
@@ -23,8 +23,6 @@ import { BookOpenIcon } from "vue-feather-icons";
     }
 })
 export default class HistoryList extends Vue {
-    @Prop() data!: HistoryListItem[];
-
     private expanded: boolean = false;
 
     getDateString(d: Date) {
@@ -33,6 +31,11 @@ export default class HistoryList extends Vue {
         } else {
             return Date.toString();
         }
+    }
+
+    getData() {
+        console.log(this.$store);
+        return this.$store.state.history;
     }
 }
 </script>

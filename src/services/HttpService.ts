@@ -1,5 +1,6 @@
-import axios from "axios";
+import axios, {AxiosResponse} from "axios";
 import { HistoryListItem } from "@/models/HistoryListItem";
+import {RegistrationInfo} from '@/models/RegistrationInfo';
 
 export default class HttpService {
     static async test(): Promise<string> {
@@ -21,7 +22,39 @@ export default class HttpService {
             relatedTaskID,
             private: priv
         };
-        const res = await axios.post("/api/history", body);
+
+        let res: AxiosResponse;
+        try {
+            res = await axios.post("/api/history", body);
+        } catch(e) {
+            throw e;
+        }
+        return res.data;
+    }
+
+    static async login(email: string, password: string) {
+        const body = {
+            email,
+            password
+        };
+
+        let res: AxiosResponse;
+        try {
+            res = await axios.post("/api/login", body);
+        } catch(e) {
+            throw e;
+        }
+        return res.data;
+    }
+
+    static async register(info: RegistrationInfo): Promise<string> {
+        let res: AxiosResponse;
+        try {
+            res = await axios.post("/api/register", info);
+        } catch(e) {
+            throw e;
+        }
+
         return res.data;
     }
 }

@@ -11,7 +11,7 @@ CREATE TABLE IF NOT EXISTS "public.task" (
 
 CREATE TABLE IF NOT EXISTS "public.user" (
     "id"                SERIAL                  PRIMARY KEY
-,   "email"             TEXT        NOT NULL
+,   "email"             TEXT        NOT NULL    UNIQUE
 ,   "first_name"        TEXT        NOT NULL
 ,   "last_name"         TEXT
 ,   "display_name"      TEXT

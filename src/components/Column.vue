@@ -1,10 +1,8 @@
 <template lang="pug">
-div
-    Header
-    div.container
-        HistoryList.mtop(:data="historyData")
-        MainWindow.mtop
-        TodoList.mtop.mbottom(:data="todoList")
+div.column
+    HistoryList.mtop(:data="historyData")
+    MainWindow.mtop
+    TodoList.mtop.mbottom(:data="todoList")
 </template>
 
 <script lang="ts">
@@ -17,7 +15,7 @@ import { HistoryListItem } from "../models/HistoryListItem";
 import { Task } from '../models/Task';
 
 @Component({
-    name: "Main",
+    name: "column",
     components: {
         MainWindow,
         HistoryList,
@@ -33,13 +31,12 @@ export default class Column extends Vue {
 
 <!-- Add "scoped" attribute to limit CSS to this component only -->
 <style scoped lang="stylus">
-div.container
-    background linear-gradient(to top, #bbddff, #ffffff)
+div.column
     display flex
     flex-direction column
     align-items center
-    width 100%
-    height calc(100% - 64px)
+    width auto
+    margin 0 auto
 
 .mtop
     margin-top 32px
