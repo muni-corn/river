@@ -1,4 +1,5 @@
 var express = require("express");
+var bcrypt = require("bcrypt");
 var router = express.Router();
 
 const { Client } = require("pg");
@@ -9,7 +10,10 @@ const {
     makeLinkTaskOwnerQuery,
     makePushHistoryQuery,
     makeUpdateTaskQuery,
-    makeUpdateHistoryItemQuery
+    makeUpdateHistoryItemQuery,
+    makeGetHashQuery,
+    makeCreateUserQuery,
+    makeInsertAuthQuery
 } = require("./queries");
 
 function newDBClient() {
@@ -132,6 +136,72 @@ router.get("/singleTask", async function(req, res) {
         .rows[0];
     await client.end();
     res.send(task);
+});
+
+// auth and users
+
+const saltRounds = 10
+
+router.post("/register", async function(req, res) {
+    const client = newDBClient();
+    await client.connect();
+    try {
+        await client.query("BEGIN");
+
+        // make user
+        const userID = (
+            await client.query(
+                makeCreateUserQuery(
+                    req.body.firstName,
+                    req.body.lastName,
+                    req.body.email,
+                    req.body.displayName
+                )
+            )
+        ).rows[0].id; // stupid, but if no rows are returned that's also kinda dumb
+
+        // make password hash
+        const hash = await bcrypt.hash(req.body.password, saltRounds);
+
+        // insert hash into auth table
+        await client.query(makeInsertAuthQuery(userID, hash));
+        await client.query("COMMIT");
+        res.send();
+    } catch (e) {
+        console.log(e);
+        await client.query("ROLLBACK");
+        res.status(500).send(e);
+    } finally {
+        await client.end();
+    }
+});
+
+router.post("/login", async function(req, res) {
+    const client = newDBClient();
+    await client.connect();
+    const rows = (
+        await client.query(
+            makeGetHashQuery(req.body.email)
+        )
+    ).rows;
+
+    if (rows.length <= 0) {
+        res.status(401).send("User not found");
+        return;
+    }
+
+    const hash = rows[0].hash;
+
+    // authenticate and return jwt if successful
+    let token;
+    if (await bcrypt.compare(req.body.password, hash)) {
+
+    } else {
+        res.status(401).send("Incorrect password");
+    }
+
+    res.send(token);
+    await client.end();
 });
 
 module.exports = router;

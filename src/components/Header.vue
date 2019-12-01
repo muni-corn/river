@@ -4,6 +4,15 @@
     p User name
 </template>
 
+<script lang="ts">
+import { Component, Vue } from "vue-property-decorator";
+
+@Component
+export default class Header extends Vue {
+
+}
+</script>
+
 <style scoped lang="stylus">
 .header
     max-width 75%

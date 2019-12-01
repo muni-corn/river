@@ -7,14 +7,26 @@ Vue.use(VueRouter);
 const routes = [
     {
         path: "/",
-        name: "home",
         component: Home
     },
     {
-        path: "/register",
-        name: "register",
+        path: "/auth",
         component: () =>
-            import(/* webpackChunkName: "auth" */ "../views/Auth.vue")
+            import("../views/Auth.vue"),
+        children: [
+            {
+                path: "register",
+                name: "register",
+                component: () =>
+                    import("../components/Register.vue"),
+            },
+            {
+                path: "login",
+                name: "login",
+                component: () =>
+                    import("../components/Login.vue")
+            }
+        ]
     }
 ];
 

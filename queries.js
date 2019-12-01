@@ -110,6 +110,32 @@ function makeGetSingleTaskQuery(taskID) {
     };
 }
 
+function makeGetHashQuery(email) {
+    return {
+        name: "getHash",
+        text: 'SELECT "user", "hash" FROM "public.auth" WHERE "user" = (SELECT id FROM "public.user" WHERE "email" = $1)',
+        values: [email]
+    };
+}
+
+function makeCreateUserQuery(firstName, lastName, email, displayName) {
+    return {
+        name: "createUser",
+        text: 'INSERT INTO "public.user" (first_name, last_name, email, display_name) ' +
+            'VALUES ($1, $2, $3, $4) RETURNING id',
+        values: [firstName, lastName, email, displayName]
+    };
+}
+
+function makeInsertAuthQuery(userID, hash) {
+    return {
+        name: "insertAuth",
+        text: 'INSERT INTO "public.auth" ("user", hash) ' +
+            'VALUES ($1, $2)',
+        values: [userID, hash]
+    };
+}
+
 module.exports = {
     makeStartQuery,
     makeStopQuery,
@@ -120,5 +146,8 @@ module.exports = {
     makeUpdateTaskQuery,
     makeUpdateHistoryItemQuery,
     makeGetTasksQuery,
-    makeGetSingleTaskQuery
+    makeGetSingleTaskQuery,
+    makeGetHashQuery,
+    makeCreateUserQuery,
+    makeInsertAuthQuery
 };
