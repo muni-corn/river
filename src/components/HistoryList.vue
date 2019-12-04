@@ -34,7 +34,6 @@ export default class HistoryList extends Vue {
     }
 
     getData() {
-        console.log(this.$store);
         return this.$store.state.history;
     }
 }
