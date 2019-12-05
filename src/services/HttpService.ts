@@ -1,6 +1,6 @@
-import axios, {AxiosResponse} from "axios";
+import axios, { AxiosResponse } from "axios";
 import { HistoryListItem } from "@/models/HistoryListItem";
-import {RegistrationInfo} from '@/models/RegistrationInfo';
+import { RegistrationInfo } from "@/models/RegistrationInfo";
 
 export default class HttpService {
     static async test(): Promise<string> {
@@ -26,7 +26,7 @@ export default class HttpService {
         let res: AxiosResponse;
         try {
             res = await axios.post("/api/history", body);
-        } catch(e) {
+        } catch (e) {
             throw e;
         }
         return res.data;
@@ -41,7 +41,7 @@ export default class HttpService {
         let res: AxiosResponse;
         try {
             res = await axios.post("/api/login", body);
-        } catch(e) {
+        } catch (e) {
             throw e;
         }
         return res.data;
@@ -51,7 +51,7 @@ export default class HttpService {
         let res: AxiosResponse;
         try {
             res = await axios.post("/api/register", info);
-        } catch(e) {
+        } catch (e) {
             throw e;
         }
 

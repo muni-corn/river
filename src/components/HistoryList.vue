@@ -26,7 +26,7 @@ export default class HistoryList extends Vue {
     private expanded: boolean = false;
 
     getDateString(d: Date) {
-        if (d.getTime() > Date.now() - (24 * 60 * 60 * 1000)) {
+        if (d.getTime() > Date.now() - 24 * 60 * 60 * 1000) {
             return d.toTimeString();
         } else {
             return Date.toString();
