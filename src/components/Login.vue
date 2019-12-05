@@ -3,11 +3,11 @@
     .card
         form(@submit.prevent="submit()")
             h1 Sign in
-            input(required type="text", placeholder="Email", v-model.trim="email")
-            input(required type="password", placeholder="Password", v-model="password")
+            input(:disabled="busy" required type="text", placeholder="Email", v-model.trim="email")
+            input(:disabled="busy" required type="password", placeholder="Password", v-model="password")
             .actions
-                button(type="button", @click="goToRegister()") Create an account
-                button.primary Sign in
+                button(:disabled="busy" type="button", @click="goToRegister()") Create an account
+                button.primary(:disabled="busy") Sign in
 </template>
 
 <script lang="ts">
@@ -22,16 +22,20 @@ import { RegistrationInfo } from "../models/RegistrationInfo";
 export default class Login extends Vue {
     private email: string = "";
     private password: string = "";
+    private busy: boolean = false;
 
-    submit() {
-        this.$store.dispatch(StoreActions.Login, {
+    async submit() {
+        this.busy = true;
+        await this.$store.dispatch(StoreActions.Login, {
             email: this.email,
             password: this.password
         });
+        console.log(this.$store.state.userToken)
+        this.busy = false;
     }
 
     goToRegister() {
-        this.$router.push({ name: "register" })
+        this.$router.push({ name: "register" });
     }
 }
 </script>
