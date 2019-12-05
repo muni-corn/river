@@ -12,7 +12,7 @@ import HistoryList from "./HistoryList.vue";
 import TodoList from "./TodoList.vue";
 import Header from "./Header.vue";
 import { HistoryListItem } from "../models/HistoryListItem";
-import { Task } from '../models/Task';
+import { Task } from "../models/Task";
 
 @Component({
     name: "column",

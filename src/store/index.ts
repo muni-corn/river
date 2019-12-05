@@ -1,16 +1,15 @@
 import Vue from "vue";
 import Vuex from "vuex";
 import HttpService from "@/services/HttpService";
-import { HistoryListItem } from '@/models/HistoryListItem';
-import { RegistrationInfo } from '@/models/RegistrationInfo';
-import { StoreActions, StoreMutations } from '@/enums/StoreTypes';
+import { HistoryListItem } from "@/models/HistoryListItem";
+import { RegistrationInfo } from "@/models/RegistrationInfo";
+import { StoreActions, StoreMutations } from "@/enums/StoreTypes";
 
 Vue.use(Vuex);
 
 export default new Vuex.Store({
     state: {
         history: [] as HistoryListItem[],
-        userID: 0,
         userToken: (null as unknown) as string
     },
     mutations: {
@@ -48,7 +47,7 @@ export default new Vuex.Store({
             } catch (e) {
                 throw e;
             }
-            commit(StoreMutations.SetToken, token)
+            commit(StoreMutations.SetToken, token);
         },
 
         async [StoreActions.Register]({ commit }, payload: RegistrationInfo) {

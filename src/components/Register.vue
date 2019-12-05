@@ -43,7 +43,7 @@ export default class Register extends Vue {
     }
 
     goToSignIn() {
-        this.$router.push({ name: "login" })
+        this.$router.push({ name: "login" });
     }
 }
 </script>
