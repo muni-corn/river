@@ -113,7 +113,8 @@ function makeGetSingleTaskQuery(taskID) {
 function makeGetHashQuery(email) {
     return {
         name: "getHash",
-        text: 'SELECT "user", "hash" FROM "public.auth" WHERE "user" = (SELECT id FROM "public.user" WHERE "email" = $1)',
+        text:
+            'SELECT "user", "hash" FROM "public.auth" WHERE "user" = (SELECT id FROM "public.user" WHERE "email" = $1)',
         values: [email]
     };
 }
@@ -121,8 +122,9 @@ function makeGetHashQuery(email) {
 function makeCreateUserQuery(firstName, lastName, email, displayName) {
     return {
         name: "createUser",
-        text: 'INSERT INTO "public.user" (first_name, last_name, email, display_name) ' +
-            'VALUES ($1, $2, $3, $4) RETURNING id',
+        text:
+            'INSERT INTO "public.user" (first_name, last_name, email, display_name) ' +
+            "VALUES ($1, $2, $3, $4) RETURNING id",
         values: [firstName, lastName, email, displayName]
     };
 }
@@ -130,8 +132,7 @@ function makeCreateUserQuery(firstName, lastName, email, displayName) {
 function makeInsertAuthQuery(userID, hash) {
     return {
         name: "insertAuth",
-        text: 'INSERT INTO "public.auth" ("user", hash) ' +
-            'VALUES ($1, $2)',
+        text: 'INSERT INTO "public.auth" ("user", hash) ' + "VALUES ($1, $2)",
         values: [userID, hash]
     };
 }
