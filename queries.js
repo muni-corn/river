@@ -119,6 +119,14 @@ function makeGetHashQuery(email) {
     };
 }
 
+function makeGetUserQuery(userID) {
+    return {
+        name: "getUser",
+        text: 'SELECT "first_name", "last_name", "display_name" FROM "public.user" WHERE "id" = $1',
+        values: [userID]
+    };
+}
+
 function makeCreateUserQuery(firstName, lastName, email, displayName) {
     return {
         name: "createUser",
@@ -150,5 +158,6 @@ module.exports = {
     makeGetSingleTaskQuery,
     makeGetHashQuery,
     makeCreateUserQuery,
-    makeInsertAuthQuery
+    makeInsertAuthQuery,
+    makeGetUserQuery
 };

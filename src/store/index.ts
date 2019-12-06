@@ -4,25 +4,29 @@ import HttpService from "@/services/HttpService";
 import { HistoryListItem } from "@/models/HistoryListItem";
 import { RegistrationInfo } from "@/models/RegistrationInfo";
 import { StoreActions, StoreMutations } from "@/enums/StoreTypes";
+import {Task} from '@/models/Task';
 
 Vue.use(Vuex);
 
+interface State {
+    history: HistoryListItem[];
+    todo: Task[];
+    userName: string;
+}
+
 export default new Vuex.Store({
     state: {
-        history: [] as HistoryListItem[],
-        userToken: (null as unknown) as string
-    },
+        history: [],
+        todo: [],
+        userName: ""
+    } as State,
     mutations: {
         [StoreMutations.HistoryPush](state: any, newItem: HistoryListItem) {
             state.history.push(newItem);
         },
 
-        [StoreMutations.SetToken](state: any, token: string) {
-            state.userToken = token;
-        },
-
-        [StoreMutations.ClearToken](state: any) {
-            state.userToken = null;
+        [StoreMutations.SetUser](state: any, { firstName, lastName, displayName }) {
+            state.userName = displayName || firstName + (lastName ? ` ${lastName}` : "");
         }
     },
     actions: {
@@ -39,30 +43,6 @@ export default new Vuex.Store({
             );
             commit(StoreActions.HistoryPush, newItem);
         },
-
-        async [StoreActions.Login]({ commit }, { email, password }) {
-            let token: string;
-            try {
-                token = await HttpService.login(email, password);
-            } catch (e) {
-                throw e;
-            }
-            commit(StoreMutations.SetToken, token);
-        },
-
-        async [StoreActions.Register]({ commit }, payload: RegistrationInfo) {
-            let token: string;
-            try {
-                token = await HttpService.register(payload);
-            } catch (e) {
-                throw e;
-            }
-            commit(StoreMutations.SetToken, token);
-        },
-
-        async [StoreActions.Logout]({ commit }) {
-            commit(StoreMutations.ClearToken);
-        }
     },
     modules: {}
 });

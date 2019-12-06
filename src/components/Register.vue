@@ -29,17 +29,23 @@ export default class Register extends Vue {
     private email: string = "";
     private password: string = "";
     private busy: boolean = false;
+    private error: string = "";
 
     async submit() {
         this.busy = true;
-        await this.$store.dispatch(StoreActions.Register, {
-            firstName: this.firstName,
-            lastName: this.lastName,
-            displayName: this.displayName,
-            email: this.email,
-            password: this.password
-        } as RegistrationInfo);
-        this.busy = false;
+        try {
+            await HttpService.register({
+                firstName: this.firstName,
+                lastName: this.lastName,
+                displayName: this.displayName,
+                email: this.email,
+                password: this.password
+            })
+        } catch (e) {
+            this.error = e;
+            this.busy = false;
+        }
+        this.$router.push({ name: "home" });
     }
 
     goToSignIn() {
