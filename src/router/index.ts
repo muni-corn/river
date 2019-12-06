@@ -1,16 +1,18 @@
 import Vue from "vue";
-import VueRouter from "vue-router";
+import VueRouter, {Route} from "vue-router";
 import Home from "../views/Home.vue";
+import HttpService from '@/services/HttpService';
 
 Vue.use(VueRouter);
 
 const routes = [
     {
         path: "/",
+        name: "home",
         component: Home
     },
     {
-        path: "/auth",
+        path: "",
         component: () => import("../views/Auth.vue"),
         children: [
             {
@@ -32,5 +34,15 @@ const router = new VueRouter({
     base: process.env.BASE_URL,
     routes
 });
+
+async function authGuard(to: Route, _: Route, next: Function) {
+    if (to.path == "/login" || to.path == "/register" || await HttpService.isAuthenticated()) {
+        next();
+    } else {
+        next({ name: "login" });
+    }
+}
+
+router.beforeEach(authGuard);
 
 export default router;

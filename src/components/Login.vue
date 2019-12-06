@@ -13,7 +13,7 @@
 <script lang="ts">
 import { Component, Vue } from "vue-property-decorator";
 import HttpService from "../services/HttpService";
-import { StoreActions } from "../enums/StoreTypes";
+import { StoreActions, StoreMutations } from "../enums/StoreTypes";
 import { RegistrationInfo } from "../models/RegistrationInfo";
 
 @Component({
@@ -23,15 +23,20 @@ export default class Login extends Vue {
     private email: string = "";
     private password: string = "";
     private busy: boolean = false;
+    private error: string = "";
 
     async submit() {
+        let user;
+
         this.busy = true;
-        await this.$store.dispatch(StoreActions.Login, {
-            email: this.email,
-            password: this.password
-        });
-        console.log(this.$store.state.userToken)
-        this.busy = false;
+        try {
+            user = await HttpService.login(this.email, this.password);
+        } catch (e) {
+            this.error = e;
+            this.busy = false;
+        }
+        this.$store.commit(StoreMutations.SetUser, user);
+        this.$router.push({ name: "home" });
     }
 
     goToRegister() {

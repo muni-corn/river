@@ -1,14 +1,18 @@
 <template lang="pug">
 .header
     h1 River
-    p User name
+    p {{ getName() }}
 </template>
 
 <script lang="ts">
 import { Component, Vue } from "vue-property-decorator";
 
 @Component
-export default class Header extends Vue {}
+export default class Header extends Vue {
+    getName(): string {
+        return this.$store.state.userName;
+    }
+}
 </script>
 
 <style scoped lang="stylus">

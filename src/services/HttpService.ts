@@ -40,21 +40,40 @@ export default class HttpService {
 
         let res: AxiosResponse;
         try {
-            res = await axios.post("/api/login", body);
+            res = await axios.post("/auth/login", body);
         } catch (e) {
             throw e;
         }
         return res.data;
     }
 
+    static async logout() {
+        try {
+            await axios.post("/auth/logout");
+        } catch (e) {
+            throw e;
+        }
+    }
+
     static async register(info: RegistrationInfo): Promise<string> {
         let res: AxiosResponse;
         try {
-            res = await axios.post("/api/register", info);
+            res = await axios.post("/auth/register", info);
         } catch (e) {
             throw e;
         }
 
         return res.data;
+    }
+
+    static async isAuthenticated(): Promise<boolean> {
+        let res: AxiosResponse;
+        try {
+            res = await axios.post("/auth/verify");
+        } catch (e) {
+            return false;
+        }
+
+        return res.data || false;
     }
 }

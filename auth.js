@@ -6,7 +6,8 @@ var router = express.Router();
 const {
     makeGetHashQuery,
     makeCreateUserQuery,
-    makeInsertAuthQuery
+    makeInsertAuthQuery,
+    makeGetUserQuery
 } = require("./queries");
 
 const newDBClient = require('./db.js');
@@ -60,16 +61,47 @@ router.post("/login", async function(req, res) {
     const hash = rows[0].hash;
 
     // authenticate and return jwt if successful
-    let token;
+    let token, payload;
     if (await bcrypt.compare(req.body.password, hash)) {
-        token = jwt.sign({ userID: rows[0].user }, process.env.SECRET);
+        // get user information
+        const userID = rows[0].user;
+        const userRows = (await client.query(makeGetUserQuery(userID))).rows;
+
+        if (userRows.length <= 0) {
+            res.status(500).send("Couldn't get user by id... for some reason");
+            return;
+        }
+
+        const user = userRows[0];
+
+        payload = {
+            userID: userID,
+            firstName: user.first_name,
+            lastName: user.last_name,
+            displayName: user.display_name
+        };
+
+        token = jwt.sign(payload, process.env.SECRET);
     } else {
         res.status(401).send("Incorrect password");
     }
 
     res.cookie("token", token, { httpOnly: true });
-    res.send(token);
+    res.status(200).send(payload);
     await client.end();
+});
+
+router.post("/verify", async function(req, res) {
+    try {
+        await jwt.verify(req.cookies.token, process.env.SECRET);
+        res.send(true);
+    } catch (e) {
+        res.status(401).send(false);
+    }
+});
+
+router.post("/logout", async function(req, res, next) {
+    res.clearCookie("token");
 });
 
 module.exports = router;
