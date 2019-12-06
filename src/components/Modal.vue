@@ -30,7 +30,7 @@ export default class Modal extends Vue {
 <style lang="stylus">
 div.backdrop
     position fixed
-    background rgba(0, 0, 0, 0.5);
+    background rgba(0, 0, 0, 0.75);
     top 0
     left 0
     right 0
@@ -42,6 +42,8 @@ div.modal
     background white
     border-radius 24px
     margin 0 auto
+    width 384px
+    max-width 100%
 
     h1
         color black
