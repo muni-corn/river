@@ -38,3 +38,9 @@ export default class HistoryList extends Vue {
     }
 }
 </script>
+
+<style lang="stylus" scoped>
+ul
+    max-height 100%
+    overflow-y auto
+</style>

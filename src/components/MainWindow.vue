@@ -5,14 +5,14 @@
         select.status(v-model="status") {{ status.toString() }}
             option(:value="WorkingStatus.Working") Working
             option(:value="WorkingStatus.Away") Away
-        input.subject(type="text" v-model="subject")
+        input.subject(v-if="currentTask", type="text", v-model="currentTask.name")
         #stats
             ClockIcon
     #current(v-else)
         EditIcon.clickable(@click="edit()", style="float: right;")
         p.status {{ status.toString() }}
-        p.subject {{ subject }}
-        #stats
+        p.subject(v-if="currentTask") {{ currentTask.name }}
+        #stats(v-if="currentTask")
             ClockIcon
 </template>
 
@@ -22,7 +22,10 @@ import { ClockIcon, EditIcon, CheckIcon } from "vue-feather-icons";
 import { Component, Prop, Vue } from "vue-property-decorator";
 import { WorkingStatus } from "@/enums/WorkingStatus";
 import { Events } from "@/enums/Events";
-import HttpService from "@/services/HttpService";
+import { Task } from "@/models/Task";
+import { HistoryListItem } from "@/models/HistoryListItem";
+import { StoreActions } from "@/enums/StoreTypes";
+import HTTPService from "@/services/HTTPService";
 import HistoryList from "@/components/HistoryList.vue";
 
 @Component({
@@ -35,23 +38,43 @@ import HistoryList from "@/components/HistoryList.vue";
 })
 export default class MainWindow extends Vue {
     private WorkingStatus = WorkingStatus;
-    private status: WorkingStatus = WorkingStatus.Working;
-    private subject: string = "Web engineering project";
-    private progress!: number;
-    private minutesLeft!: number;
-    private minutesSpent!: number;
+    private status: WorkingStatus = WorkingStatus.Away;
+    private currentTask: Task | null = {
+        id: 0,
+        name: "Web engineering thing",
+        creationDate: new Date()
+    };
+    private lastState: {
+        title?: string,
+        status?: WorkingStatus,
+    } = {};
 
     private editing: boolean = false;
 
     edit() {
         this.editing = true;
+        this.lastState = {
+            title: this.currentTask!.name,
+            status: this.status
+        };
     }
 
     stopEdit() {
         this.editing = false;
+        const differentTitle = this.lastState.title != this.currentTask!.name;
+        const differentStatus = this.lastState.status != this.status;
+
+        if (differentTitle) {
+            this.$store.dispatch(StoreActions.HistoryPush, {
+                at: new Date(),
+                title: `Renamed "${this.lastState.title}" to "${this.currentTask!.name}"`
+            } as HistoryListItem);
+        }
     }
 
-    changeStatus() {}
+    changeStatus() {
+
+    }
 
     pushHistory() {
         this.$emit(Events.HistoryPush, null);

@@ -15,7 +15,7 @@
 
 <script lang="ts">
 import { Component, Vue } from "vue-property-decorator";
-import HttpService from "../services/HttpService";
+import HTTPService from "../services/HTTPService";
 import { StoreActions } from "../enums/StoreTypes";
 import { RegistrationInfo } from "../models/RegistrationInfo";
 
@@ -34,7 +34,7 @@ export default class Register extends Vue {
     async submit() {
         this.busy = true;
         try {
-            await HttpService.register({
+            await HTTPService.register({
                 firstName: this.firstName,
                 lastName: this.lastName,
                 displayName: this.displayName,

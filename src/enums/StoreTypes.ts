@@ -1,8 +1,12 @@
 export enum StoreActions {
     HistoryPush = "historyPush",
+    GetUserInformation = "getUserInformation"
 }
 
 export enum StoreMutations {
     HistoryPush = "historyPush",
-    SetUser = "setUser"
+    SetUserName = "setUserName",
+    SetTodo = "setTodo",
+    SetHistory = "setHistory",
+    SetCurrentTask = "setCurrentTask"
 }

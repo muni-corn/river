@@ -21,7 +21,7 @@ function makePushHistoryQuery(userID, actionName, private, relatedTaskID) {
         name: "pushHistory",
         text:
             'INSERT INTO "public.history" ' +
-            '("user", action, time, private, related_task) ' +
+            '("user", "action", "time", "private", "related_task") ' +
             "VALUES " +
             "($1, $2, NOW(), $3, $4) RETURNING *",
         values: [userID, actionName, private, relatedTaskID]
@@ -102,6 +102,14 @@ function makeGetTasksQuery(userID) {
     };
 }
 
+function makeGetIncompleteTasksQuery(userID) {
+    return {
+        name: "getTasks",
+        text: 'SELECT * FROM "public.task" WHERE "owner" = $1 AND "was_completed_at" = NULL',
+        values: [userID]
+    };
+}
+
 function makeGetSingleTaskQuery(taskID) {
     return {
         name: "getTasks",
@@ -159,5 +167,6 @@ module.exports = {
     makeGetHashQuery,
     makeCreateUserQuery,
     makeInsertAuthQuery,
-    makeGetUserQuery
+    makeGetUserQuery,
+    makeGetIncompleteTasksQuery
 };

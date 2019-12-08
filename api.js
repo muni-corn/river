@@ -1,5 +1,4 @@
 var express = require("express");
-var jwt = require("jsonwebtoken");
 var router = express.Router();
 
 const {
@@ -10,6 +9,8 @@ const {
     makePushHistoryQuery,
     makeUpdateTaskQuery,
     makeUpdateHistoryItemQuery,
+    makeGetUserQuery,
+    makeGetIncompleteTasksQuery
 } = require("./queries");
 
 const newDBClient = require('./db.js');
@@ -96,7 +97,7 @@ router.post("/updateHistoryItem", async function(req, res) {
 router.get("/history", async function(req, res) {
     const client = newDBClient();
     const result = await client.query(
-        makeGetHistoryQuery(req.body.userID, req.body.offset, req.body.limit)
+        makeGetHistoryQuery(req.userID, req.body.offset, req.body.limit)
     );
     await client.end();
     res.send(result.rows);
@@ -104,21 +105,30 @@ router.get("/history", async function(req, res) {
 
 router.post("/history", async function(req, res) {
     const client = newDBClient();
-    const newHistory = await client.query(
-        makePushHistoryQuery(
-            req.body.userID,
-            req.body.title,
-            req.body.private,
-            req.body.relatedTaskID || null
-        )
-    ).rows[0];
-    await client.end();
+    let newHistory;
+    try {
+        client.query(
+            makePushHistoryQuery(
+                req.userID,
+                req.body.title,
+                req.body.private,
+                req.body.relatedTaskID || null
+            )
+        ).then(result => { // await doesn't work for some reason
+            client.end();
+            res.send(result);
+        }, err => {
+            res.status(500).send(err);
+        });
+    } catch (e) {
+        res.status(500).send(e);
+    }
     res.send(newHistory);
 });
 
 router.get("/tasks", async function(req, res) {
     const client = newDBClient();
-    const result = await client.query(makeGetTasksQuery(req.body.userID));
+    const result = await client.query(makeGetTasksQuery(req.userID));
     await client.end();
     res.send(result.rows);
 });
@@ -129,6 +139,49 @@ router.get("/singleTask", async function(req, res) {
         .rows[0];
     await client.end();
     res.send(task);
+});
+
+router.get("/user", async function(req, res) {
+    const client = newDBClient();
+    try {
+        const user = (await client.query(makeGetUserQuery(req.userID))).rows[0];
+        const todo = (await client.query(makeGetIncompleteTasksQuery(req.userID))).rows;
+        const history = (await client.query(makeGetHistoryQuery(req.userID, 0, 10))).rows;
+        const userMapped = {
+            displayName: user.display_name,
+            firstName: user.first_name,
+            lastName: user.last_name
+        };
+        const tasksMapped = todo.map(task => {
+            return {
+                id: task.id,
+                name: task.name,
+                percentComplete: task.percent_complete,
+                minutesSpent: task.minutes_spent,
+                wasCompletedAt: task.was_completed_at,
+                creationDate: task.creation_date
+            };
+        });
+        const historyMapped = history.map(item => {
+            return {
+                at: item.time,
+                title: item.action,
+                priv: item.private,
+                relatedTaskID: item.related_task
+            };
+        })
+        const result = {
+            userName: userMapped.displayName || userMapped.firstName + (userMapped.lastName ? ` ${userMapped.lastName}` : ""),
+            currentTaskID: user.current_task,
+            awayReason: user.away_reason,
+            todo: tasksMapped,
+            history: historyMapped
+        };
+        res.send(result);
+        return;
+    } catch (e) {
+        res.status(500).send(e);
+    }
 });
 
 module.exports = router;
