@@ -26,7 +26,6 @@ export default new Vuex.Store({
 
     mutations: {
         [StoreMutations.HistoryPush](state: State, newItem: HistoryListItem) {
-            console.log("mutating history in store");
             state.history.push(newItem);
         },
 
@@ -52,17 +51,12 @@ export default new Vuex.Store({
             { commit },
             newItem: HistoryListItem
         ) {
-            console.log("dispatching push history in store");
             const taskID = newItem.relatedTaskID || null;
-            try {
-                await HTTPService.pushHistory(
-                    newItem.title,
-                    newItem.priv || false,
-                    taskID
-                );
-            } catch (e) {
-                console.log(e);
-            }
+            await HTTPService.pushHistory(
+                newItem.title,
+                newItem.priv || false,
+                taskID
+            );
             commit(StoreActions.HistoryPush, newItem);
         },
 
