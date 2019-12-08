@@ -1,8 +1,9 @@
 import axios, { AxiosResponse } from "axios";
 import { HistoryListItem } from "@/models/HistoryListItem";
 import { RegistrationInfo } from "@/models/RegistrationInfo";
+import { UserInformationPayload } from '@/models/UserInformationPayload';
 
-export default class HttpService {
+export default class HTTPService {
     static async test(): Promise<string> {
         const res = await axios.get("/api/test");
         // eslint-disable-next-line
@@ -11,13 +12,11 @@ export default class HttpService {
     }
 
     static async pushHistory(
-        userID: number,
         title: string,
         priv: boolean,
         relatedTaskID: number | null
     ): Promise<HistoryListItem> {
         const body = {
-            userID,
             title,
             relatedTaskID,
             private: priv
@@ -75,5 +74,16 @@ export default class HttpService {
         }
 
         return res.data || false;
+    }
+
+    static async getUserInformation(): Promise<UserInformationPayload> {
+        let res: AxiosResponse;
+        try {
+            res = await axios.get("/api/user");
+        } catch (e) {
+            throw e;
+        }
+
+        return res.data;
     }
 }

@@ -1,48 +1,80 @@
 import Vue from "vue";
 import Vuex from "vuex";
-import HttpService from "@/services/HttpService";
+import HTTPService from "@/services/HTTPService";
 import { HistoryListItem } from "@/models/HistoryListItem";
-import { RegistrationInfo } from "@/models/RegistrationInfo";
 import { StoreActions, StoreMutations } from "@/enums/StoreTypes";
-import {Task} from '@/models/Task';
+import { Task } from '@/models/Task';
 
 Vue.use(Vuex);
 
 interface State {
     history: HistoryListItem[];
     todo: Task[];
-    userName: string;
+    userName: string
+    currentTaskID: number,
+    awayReason: string,
 }
 
 export default new Vuex.Store({
     state: {
         history: [],
         todo: [],
-        userName: ""
+        userName: "",
+        currentTaskID: 0,
+        awayReason: ""
     } as State,
+
     mutations: {
-        [StoreMutations.HistoryPush](state: any, newItem: HistoryListItem) {
+        [StoreMutations.HistoryPush](state: State, newItem: HistoryListItem) {
+            console.log("mutating history in store");
             state.history.push(newItem);
         },
 
-        [StoreMutations.SetUser](state: any, { firstName, lastName, displayName }) {
-            state.userName = displayName || firstName + (lastName ? ` ${lastName}` : "");
+        [StoreMutations.SetUserName](state: State, name: string) {
+            state.userName = name;
+        },
+
+        [StoreMutations.SetTodo](state: State, todo: Task[]) {
+            state.todo = todo;
+        },
+
+        [StoreMutations.SetHistory](state: State, history: HistoryListItem[]) {
+            state.history = history;
+        },
+
+        [StoreMutations.SetCurrentTask](state: State, id: number) {
+            state.currentTaskID = id;
         }
     },
+
     actions: {
         async [StoreActions.HistoryPush](
-            { commit, state },
+            { commit },
             newItem: HistoryListItem
         ) {
-            const taskID = newItem.relatedTask ? newItem.relatedTask.id : null;
-            await HttpService.pushHistory(
-                state.userID,
-                newItem.title,
-                newItem.priv || false,
-                taskID
-            );
+            console.log("dispatching push history in store");
+            const taskID = newItem.relatedTaskID || null;
+            try {
+                await HTTPService.pushHistory(
+                    newItem.title,
+                    newItem.priv || false,
+                    taskID
+                );
+            } catch (e) {
+                console.log(e);
+            }
             commit(StoreActions.HistoryPush, newItem);
         },
+
+        async [StoreActions.GetUserInformation](
+            { commit }
+        ) {
+            const info = await HTTPService.getUserInformation();
+            commit(StoreMutations.SetUserName, info.userName);
+            commit(StoreMutations.SetCurrentTask, info.currentTaskID);
+            commit(StoreMutations.SetHistory, info.history);
+            commit(StoreMutations.SetTodo, info.todo);
+        }
     },
     modules: {}
 });

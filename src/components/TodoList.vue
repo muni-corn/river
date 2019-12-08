@@ -8,13 +8,16 @@
         ul(v-else-if="expanded")
             li(v-for="d of data")
                 p {{ d.name }}
-    transition(name="expand")
-        p.add-task(v-if="expanded", @click="addTask()") + Add task
 
-    modal(v-show="showAddModal", @close="closeAddTask()")
+    transition(name="expand")
+        p.add-task(v-if="expanded", @click="openAddTaskModal()") + Add task
+
+    modal(v-show="showAddModal", @close="closeAddTaskModal()")
         h1(slot="header") Add task
         div(slot="content")
-            input
+            input(placeholder="Title")
+        div(slot="actions")
+            button(@click="closeAddTaskModal()") Cancel
 </template>
 
 <script lang="ts">
@@ -37,11 +40,11 @@ export default class TodoList extends Vue {
 
     private showAddModal: boolean = false;
 
-    addTask() {
+    openAddTaskModal() {
         this.showAddModal = true;
     }
 
-    closeAddTask() {
+    closeAddTaskModal() {
         this.showAddModal = false;
     }
 }

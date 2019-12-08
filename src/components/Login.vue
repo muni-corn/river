@@ -12,7 +12,7 @@
 
 <script lang="ts">
 import { Component, Vue } from "vue-property-decorator";
-import HttpService from "../services/HttpService";
+import HTTPService from "../services/HTTPService";
 import { StoreActions, StoreMutations } from "../enums/StoreTypes";
 import { RegistrationInfo } from "../models/RegistrationInfo";
 
@@ -30,12 +30,12 @@ export default class Login extends Vue {
 
         this.busy = true;
         try {
-            user = await HttpService.login(this.email, this.password);
+            user = await HTTPService.login(this.email, this.password);
         } catch (e) {
             this.error = e;
             this.busy = false;
         }
-        this.$store.commit(StoreMutations.SetUser, user);
+        this.$store.commit(StoreMutations.SetUserName, user);
         this.$router.push({ name: "home" });
     }
 
