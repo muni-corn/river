@@ -14,6 +14,8 @@ const newDBClient = require('./db.js');
 
 const saltRounds = 10;
 
+const secret = "weaksecret";
+
 router.post("/register", async function(req, res) {
     const client = newDBClient();
     await client.connect();
@@ -92,7 +94,7 @@ router.post("/login", async function(req, res) {
             displayName: user.display_name
         };
 
-        token = jwt.sign(payload, process.env.SECRET);
+        token = jwt.sign(payload, secret);
     } else {
         res.status(401).send("Incorrect password");
     }
@@ -104,7 +106,7 @@ router.post("/login", async function(req, res) {
 
 router.post("/verify", async function(req, res) {
     try {
-        await jwt.verify(req.cookies.token, process.env.SECRET);
+        await jwt.verify(req.cookies.token, secret);
         res.send(true);
     } catch (e) {
         res.status(401).send(false);
