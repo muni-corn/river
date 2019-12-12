@@ -11,6 +11,8 @@ var authRouter = require("./auth.js");
 
 var app = express();
 
+var secret = "weaksecret";
+
 app.use(logger("dev"));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
@@ -19,7 +21,7 @@ app.use(cookieParser());
 async function authMiddleware(req, res, next) {
     try {
         const token = req.cookies.token;
-        const { userID } = jwt.verify(token, process.env.SECRET);
+        const { userID } = jwt.verify(token, secret);
         req.userID = userID;
         return next();
     } catch (e) {
