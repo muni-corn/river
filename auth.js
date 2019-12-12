@@ -50,8 +50,14 @@ router.post("/register", async function(req, res) {
 
 router.post("/login", async function(req, res) {
     const client = newDBClient();
-    await client.connect();
-    const rows = (await client.query(makeGetHashQuery(req.body.email))).rows;
+    let rows;
+    try {
+        await client.connect();
+        rows = (await client.query(makeGetHashQuery(req.body.email))).rows;
+    } catch(e) {
+        console.log(e);
+        res.status(500).send(e);
+    }
 
     if (rows.length <= 0) {
         res.status(401).send("User not found");
@@ -65,7 +71,12 @@ router.post("/login", async function(req, res) {
     if (await bcrypt.compare(req.body.password, hash)) {
         // get user information
         const userID = rows[0].user;
-        const userRows = (await client.query(makeGetUserQuery(userID))).rows;
+        let userRows;
+        try {
+            userRows = (await client.query(makeGetUserQuery(userID))).rows;
+        } catch(e) {
+            console.log(e);
+        }
 
         if (userRows.length <= 0) {
             res.status(500).send("Couldn't get user by id... for some reason");
