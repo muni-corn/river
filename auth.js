@@ -10,7 +10,7 @@ const {
     makeGetUserQuery
 } = require("./queries");
 
-const newDBClient = require('./db.js');
+const newDBClient = require("./db.js");
 
 const saltRounds = 10;
 
@@ -56,7 +56,7 @@ router.post("/login", async function(req, res) {
     try {
         await client.connect();
         rows = (await client.query(makeGetHashQuery(req.body.email))).rows;
-    } catch(e) {
+    } catch (e) {
         console.log(e);
         res.status(500).send(e);
     }
@@ -76,7 +76,7 @@ router.post("/login", async function(req, res) {
         let userRows;
         try {
             userRows = (await client.query(makeGetUserQuery(userID))).rows;
-        } catch(e) {
+        } catch (e) {
             console.log(e);
         }
 

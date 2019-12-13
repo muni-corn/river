@@ -35,7 +35,6 @@ export default class Login extends Vue {
             this.error = e;
             this.busy = false;
         }
-        this.$store.commit(StoreMutations.SetUserName, user);
         this.$router.push({ name: "home" });
     }
 

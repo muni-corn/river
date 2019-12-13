@@ -4,20 +4,23 @@
         ListIcon.icon
         span Todo
     transition(name="expand")
-        p.nothing(v-if="expanded && data.length === 0") No tasks
-        ul(v-else-if="expanded")
-            li(v-for="d of data")
-                p {{ d.name }}
+        p.nothing(v-if="expanded && !appIsBusy() && getTasks().length === 0") No tasks
+        ul(v-else-if="expanded && !appIsBusy()")
+            li(v-for="t of getTasks()")
+                p {{ t.name }}
 
     transition(name="expand")
-        p.add-task(v-if="expanded", @click="openAddTaskModal()") + Add task
+        p.add-task(v-if="expanded && !appIsBusy()", @click="openAddTaskModal()") + Add task
 
     modal(v-show="showAddModal", @close="closeAddTaskModal()")
         h1(slot="header") Add task
         div(slot="content")
-            input(placeholder="Title")
+            input(:disabled="appIsBusy()", placeholder="Title", v-model="newTaskName")
+            input#private(:disabled="appIsBusy()", type="checkbox", v-model="priv")
+            label(for="private") Make this task private
         div(slot="actions")
-            button(@click="closeAddTaskModal()") Cancel
+            button(:disabled="appIsBusy()", @click="closeAddTaskModal()") Cancel
+            button.primary(:disabled="appIsBusy()", @click="addTask()") Confirm
 </template>
 
 <script lang="ts">
@@ -25,6 +28,7 @@ import "reflect-metadata";
 import { Component, Prop, Vue } from "vue-property-decorator";
 import { Task } from "../models/Task";
 import { ListIcon } from "vue-feather-icons";
+import { StoreActions } from "@/enums/StoreTypes";
 import Modal from "./Modal.vue";
 
 @Component({
@@ -34,18 +38,36 @@ import Modal from "./Modal.vue";
     }
 })
 export default class TodoList extends Vue {
-    @Prop() data!: Task[];
-
     private expanded: boolean = true;
 
     private showAddModal: boolean = false;
 
+    private newTaskName: string = "";
+    private priv: boolean = false;
+
     openAddTaskModal() {
+        this.newTaskName = "";
         this.showAddModal = true;
     }
 
     closeAddTaskModal() {
         this.showAddModal = false;
+    }
+
+    async addTask() {
+        await this.$store.dispatch(StoreActions.NewTask, {
+            name: this.newTaskName,
+            priv: this.priv
+        });
+        this.closeAddTaskModal();
+    }
+
+    appIsBusy() {
+        return this.$store.getters.isBusy;
+    }
+
+    getTasks() {
+        return this.$store.state.todo;
     }
 }
 </script>

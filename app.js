@@ -29,7 +29,7 @@ async function authMiddleware(req, res, next) {
         res.status(401).redirect("/auth/login");
         return;
     }
-};
+}
 
 app.use("/api", authMiddleware, apiRouter);
 app.use("/auth", authRouter);
