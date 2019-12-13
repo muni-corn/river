@@ -1,7 +1,8 @@
 import axios, { AxiosResponse } from "axios";
 import { HistoryListItem } from "@/models/HistoryListItem";
 import { RegistrationInfo } from "@/models/RegistrationInfo";
-import { UserInformationPayload } from '@/models/UserInformationPayload';
+import store from "@/store";
+import { StoreMutations } from "@/enums/StoreTypes";
 
 export default class HTTPService {
     static async test(): Promise<string> {
@@ -76,12 +77,32 @@ export default class HTTPService {
         return res.data || false;
     }
 
-    static async getUserInformation(): Promise<UserInformationPayload> {
+    static async getUserInformation(): Promise<any> {
+        store.commit(StoreMutations.PushBusy);
         let res: AxiosResponse;
         try {
             res = await axios.get("/api/user");
         } catch (e) {
             throw e;
+        } finally {
+            store.commit(StoreMutations.PopBusy);
+        }
+
+        return res.data;
+    }
+
+    static async newTask(name: string, priv: boolean): Promise<any> {
+        store.commit(StoreMutations.PushBusy);
+        let res: AxiosResponse;
+        try {
+            res = await axios.post("/api/newTask", {
+                name,
+                priv
+            });
+        } catch (e) {
+            throw e;
+        } finally {
+            store.commit(StoreMutations.PopBusy);
         }
 
         return res.data;

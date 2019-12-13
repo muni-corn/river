@@ -1,7 +1,7 @@
 import Vue from "vue";
-import VueRouter, {Route} from "vue-router";
+import VueRouter, { Route } from "vue-router";
 import Home from "../views/Home.vue";
-import HTTPService from '@/services/HTTPService';
+import HTTPService from "@/services/HTTPService";
 
 Vue.use(VueRouter);
 
@@ -36,7 +36,11 @@ const router = new VueRouter({
 });
 
 async function authGuard(to: Route, _: Route, next: Function) {
-    if (to.path == "/login" || to.path == "/register" || await HTTPService.isAuthenticated()) {
+    if (
+        to.path == "/login" ||
+        to.path == "/register" ||
+        (await HTTPService.isAuthenticated())
+    ) {
         next();
     } else {
         next({ name: "login" });

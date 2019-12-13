@@ -3,16 +3,17 @@ import Vuex from "vuex";
 import HTTPService from "@/services/HTTPService";
 import { HistoryListItem } from "@/models/HistoryListItem";
 import { StoreActions, StoreMutations } from "@/enums/StoreTypes";
-import { Task } from '@/models/Task';
+import { Task } from "@/models/Task";
 
 Vue.use(Vuex);
 
 interface State {
     history: HistoryListItem[];
     todo: Task[];
-    userName: string
-    currentTaskID: number,
-    awayReason: string,
+    userName: string;
+    currentTask: Task | null;
+    awayReason: string | null;
+    busyTasks: number;
 }
 
 export default new Vuex.Store({
@@ -20,8 +21,9 @@ export default new Vuex.Store({
         history: [],
         todo: [],
         userName: "",
-        currentTaskID: 0,
-        awayReason: ""
+        currentTask: null,
+        awayReason: null,
+        busyTasks: 0
     } as State,
 
     mutations: {
@@ -41,16 +43,25 @@ export default new Vuex.Store({
             state.history = history;
         },
 
-        [StoreMutations.SetCurrentTask](state: State, id: number) {
-            state.currentTaskID = id;
+        [StoreMutations.SetCurrentTask](state: State, task: Task) {
+            state.currentTask = task;
+        },
+
+        [StoreMutations.PushBusy](state: State) {
+            state.busyTasks++;
+        },
+
+        [StoreMutations.PopBusy](state: State) {
+            state.busyTasks--;
+        },
+
+        [StoreMutations.PushTask](state: State, task: Task) {
+            state.todo.push(task);
         }
     },
 
     actions: {
-        async [StoreActions.HistoryPush](
-            { commit },
-            newItem: HistoryListItem
-        ) {
+        async [StoreActions.HistoryPush]({ commit }, newItem: HistoryListItem) {
             const taskID = newItem.relatedTaskID || null;
             await HTTPService.pushHistory(
                 newItem.title,
@@ -60,15 +71,61 @@ export default new Vuex.Store({
             commit(StoreActions.HistoryPush, newItem);
         },
 
-        async [StoreActions.GetUserInformation](
-            { commit }
-        ) {
+        async [StoreActions.GetUserInformation]({ commit }) {
             const info = await HTTPService.getUserInformation();
-            commit(StoreMutations.SetUserName, info.userName);
+            console.log(info);
+
+            const tasksMapped = info.todo.map((task: any) => {
+                return {
+                    id: task.id,
+                    name: task.name,
+                    percentComplete: task.percent_complete,
+                    minutesSpent: task.minutes_spent,
+                    wasCompletedAt: task.was_completed_at,
+                    creationDate: task.creation_date
+                };
+            });
+            const historyMapped = info.history.map((item: any) => {
+                const date = new Date(item.time);
+                return {
+                    at: date,
+                    title: item.action,
+                    priv: item.private,
+                    relatedTaskID: item.related_task
+                };
+            });
+
+            const user = info.user;
+            const userName =
+                user.display_name ||
+                user.first_name + (user.last_name ? " " + user.last_name : "");
+
+            commit(StoreMutations.SetUserName, userName);
             commit(StoreMutations.SetCurrentTask, info.currentTaskID);
-            commit(StoreMutations.SetHistory, info.history);
-            commit(StoreMutations.SetTodo, info.todo);
+            commit(StoreMutations.SetHistory, historyMapped);
+            commit(StoreMutations.SetTodo, tasksMapped);
+        },
+
+        async [StoreActions.NewTask]({ commit }, { name, priv }) {
+            const rawTask = await HTTPService.newTask(name, priv);
+            const task: Task = {
+                id: rawTask.id,
+                name: rawTask.name,
+                minutesSpent: rawTask.minutes_spent,
+                wasCompletedAt: rawTask.was_completed_at,
+                priv: rawTask.private,
+                creationDate: rawTask.creation_date,
+                percentComplete: rawTask.percent_complete
+            };
+            commit(StoreMutations.PushTask, task);
         }
     },
+
+    getters: {
+        isBusy(state: State) {
+            return state.busyTasks > 0;
+        }
+    },
+
     modules: {}
 });

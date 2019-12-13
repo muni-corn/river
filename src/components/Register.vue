@@ -40,7 +40,7 @@ export default class Register extends Vue {
                 displayName: this.displayName,
                 email: this.email,
                 password: this.password
-            })
+            });
         } catch (e) {
             this.error = e;
             this.busy = false;

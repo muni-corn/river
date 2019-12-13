@@ -4,8 +4,8 @@
         BookOpenIcon.icon(size="24")
         span History
     transition(name="expand")
-        p.nothing(v-if="expanded && getData().length === 0") No history
-        ul(v-else-if="expanded")
+        p.nothing(v-if="expanded && !appIsBusy() && getData().length === 0") No history
+        ul(v-else-if="expanded && !appIsBusy()")
             li(v-for="d of getData()")
                 p.small {{ getDateString(d.at) }}
                 p.title {{ d.title }}
@@ -29,12 +29,16 @@ export default class HistoryList extends Vue {
         if (d.getTime() > Date.now() - 24 * 60 * 60 * 1000) {
             return d.toTimeString();
         } else {
-            return Date.toString();
+            return d.toString();
         }
     }
 
     getData() {
         return this.$store.state.history;
+    }
+
+    appIsBusy() {
+        return this.$store.getters.isBusy;
     }
 }
 </script>

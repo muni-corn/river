@@ -1,6 +1,7 @@
 export enum StoreActions {
     HistoryPush = "historyPush",
-    GetUserInformation = "getUserInformation"
+    GetUserInformation = "getUserInformation",
+    NewTask = "NewTask"
 }
 
 export enum StoreMutations {
@@ -8,5 +9,8 @@ export enum StoreMutations {
     SetUserName = "setUserName",
     SetTodo = "setTodo",
     SetHistory = "setHistory",
-    SetCurrentTask = "setCurrentTask"
+    SetCurrentTask = "setCurrentTask",
+    PushBusy = "pushBusy",
+    PopBusy = "popBusy",
+    PushTask = "PushTask"
 }

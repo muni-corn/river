@@ -95,6 +95,13 @@ input
         color #dddddd
         cursor initial
 
+    &[type="checkbox"], &[type="radio"]
+        width initial
+        margin-right 16px
+
+label
+    color black
+
 .actions
     text-align right
     margin-top 16px

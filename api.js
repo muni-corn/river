@@ -13,7 +13,7 @@ const {
     makeGetHistoryQuery
 } = require("./queries");
 
-const newDBClient = require('./db.js');
+const newDBClient = require("./db.js");
 
 router.get("/test", function(req, res) {
     console.log("userid:", req.userID);
@@ -113,7 +113,7 @@ router.post("/history", async function(req, res) {
                 req.body.private,
                 req.body.relatedTaskID || null
             )
-        )
+        );
         res.send(result);
     } catch (e) {
         res.status(500).send(e);
@@ -145,8 +145,12 @@ router.get("/user", async function(req, res) {
         await client.connect();
 
         const user = (await client.query(makeGetUserQuery(req.userID))).rows[0];
-        const todo = (await client.query(makeGetIncompleteTasksQuery(req.userID))).rows;
-        const history = (await client.query(makeGetHistoryQuery(req.userID, 0, 10))).rows;
+        const todo = (
+            await client.query(makeGetIncompleteTasksQuery(req.userID))
+        ).rows;
+        const history = (
+            await client.query(makeGetHistoryQuery(req.userID, 0, 10))
+        ).rows;
         const result = {
             user,
             todo,

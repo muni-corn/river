@@ -7,4 +7,5 @@ export interface Task {
     minutesSpent?: number;
     wasCompletedAt?: Date;
     creationDate: Date;
+    priv: boolean;
 }

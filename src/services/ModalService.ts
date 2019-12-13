@@ -1,6 +1,3 @@
-export interface ModalServiceListener {
-}
+export interface ModalServiceListener {}
 
-export default class ModalService {
-
-}
+export default class ModalService {}

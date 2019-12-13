@@ -95,7 +95,8 @@ function makeGetTasksQuery(userID) {
 function makeGetIncompleteTasksQuery(userID) {
     return {
         name: "getTasks",
-        text: 'SELECT * FROM "public.task" WHERE "owner" = $1 AND "was_completed_at" IS NULL;',
+        text:
+            'SELECT * FROM "public.task" WHERE "owner" = $1 AND "was_completed_at" IS NULL;',
         values: [userID]
     };
 }
@@ -120,7 +121,8 @@ function makeGetHashQuery(email) {
 function makeGetUserQuery(userID) {
     return {
         name: "getUser",
-        text: 'SELECT "first_name", "last_name", "display_name" FROM "public.user" WHERE "id" = $1;',
+        text:
+            'SELECT "first_name", "last_name", "display_name" FROM "public.user" WHERE "id" = $1;',
         values: [userID]
     };
 }
