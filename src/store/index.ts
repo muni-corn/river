@@ -21,7 +21,12 @@ export default new Vuex.Store({
         history: [],
         todo: [],
         userName: "",
-        currentTask: null,
+        currentTask: {
+            id: -1,
+            name: "Test task",
+            creationDate: new Date(),
+            priv: false
+        },
         awayReason: null,
         busyTasks: 0
     } as State,
@@ -73,7 +78,6 @@ export default new Vuex.Store({
 
         async [StoreActions.GetUserInformation]({ commit }) {
             const info = await HTTPService.getUserInformation();
-            console.log(info);
 
             const tasksMapped = info.todo.map((task: any) => {
                 return {
