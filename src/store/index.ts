@@ -57,7 +57,7 @@ export default new Vuex.Store({
 
         [StoreMutations.PushTask](state: State, task: Task) {
             state.todo.push(task);
-        }
+        },
     },
 
     actions: {
@@ -124,12 +124,18 @@ export default new Vuex.Store({
             } as HistoryListItem);
         },
 
-        async [StoreActions.Start]({ commit, dispatch }, task: Task) {
+        async [StoreActions.Start]({ state, commit, dispatch }, task: Task) {
+            // don't switch if starting the already-current task
+            if (state.currentTask && state.currentTask.id == task.id) {
+                return;
+            }
+
             dispatch(StoreActions.HistoryPush, {
                 priv: false,
                 title: `Switched to task "${task.name}"`,
                 at: new Date()
             } as HistoryListItem);
+
             commit(StoreMutations.SetCurrentTask, task);
         }
     },
