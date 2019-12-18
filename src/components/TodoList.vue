@@ -67,11 +67,15 @@ export default class TodoList extends Vue {
     }
 
     getTasks() {
-        return this.$store.state.todo;
+        return this.$store.state.todo.filter((task: Task) => !this.getCurrentTask() || task.id != this.getCurrentTask().id);
     }
 
     start(task: Task) {
         this.$store.dispatch(StoreActions.Start, task);
+    }
+
+    getCurrentTask() {
+        return this.$store.state.currentTask;
     }
 }
 </script>

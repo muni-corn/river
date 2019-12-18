@@ -13,5 +13,5 @@ export enum StoreMutations {
     SetCurrentTask = "setCurrentTask",
     PushBusy = "pushBusy",
     PopBusy = "popBusy",
-    PushTask = "PushTask"
+    PushTask = "pushTask"
 }
