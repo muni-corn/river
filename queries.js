@@ -94,7 +94,7 @@ function makeGetTasksQuery(userID) {
 
 function makeGetIncompleteTasksQuery(userID) {
     return {
-        name: "getTasks",
+        name: "getTodoTasks",
         text:
             'SELECT * FROM "public.task" WHERE "owner" = $1 AND "was_completed_at" IS NULL;',
         values: [userID]
@@ -103,7 +103,7 @@ function makeGetIncompleteTasksQuery(userID) {
 
 function makeGetSingleTaskQuery(taskID) {
     return {
-        name: "getTasks",
+        name: "getSingleTask",
         text: 'SELECT * FROM "public.task" WHERE "id" = $1;',
         values: [taskID]
     };
