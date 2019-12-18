@@ -6,7 +6,7 @@
     transition(name="expand")
         p.nothing(v-if="expanded && !appIsBusy() && getTasks().length === 0") No tasks
         ul(v-else-if="expanded && !appIsBusy()")
-            li(v-for="t of getTasks()")
+            li(v-for="t of getTasks()", @click="start(t)")
                 p {{ t.name }}
 
     transition(name="expand")
@@ -28,7 +28,7 @@ import "reflect-metadata";
 import { Component, Prop, Vue } from "vue-property-decorator";
 import { Task } from "../models/Task";
 import { ListIcon } from "vue-feather-icons";
-import { StoreActions } from "@/enums/StoreTypes";
+import { StoreActions, StoreMutations } from "@/enums/StoreTypes";
 import Modal from "./Modal.vue";
 
 @Component({
@@ -69,6 +69,10 @@ export default class TodoList extends Vue {
     getTasks() {
         return this.$store.state.todo;
     }
+
+    start(task: Task) {
+        this.$store.commit(StoreMutations.SetCurrentTask, task);
+    }
 }
 </script>
 
@@ -77,5 +81,12 @@ p.add-task
     text-align center
     color white
     margin 0
+    cursor pointer
+
+ul
+    max-height 100%
+    overflow-y auto
+
+li:hover
     cursor pointer
 </style>

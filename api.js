@@ -103,8 +103,8 @@ router.get("/history", async function(req, res) {
 });
 
 router.post("/history", async function(req, res) {
+    const client = newDBClient();
     try {
-        const client = newDBClient();
         await client.connect();
         const result = await client.query(
             makePushHistoryQuery(

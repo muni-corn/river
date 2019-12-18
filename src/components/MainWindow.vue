@@ -14,7 +14,7 @@
                 ClockIcon
         #current(v-else)
             EditIcon.clickable(@click="edit()", style="float: right;")
-            p.status {{ status.toString() }}
+            p.status {{ getStatus() }}
             p.subject(v-if="getCurrentTask()") {{ getCurrentTask().name }}
             #stats(v-if="getCurrentTask()")
                 ClockIcon
@@ -74,6 +74,16 @@ export default class MainWindow extends Vue {
                     this.getCurrentTask()!.name
                 }"`
             } as HistoryListItem);
+        }
+    }
+
+    getStatus() {
+        if (this.$store.state.currentTask) {
+            return "Working";
+        } else if (this.$store.state.awayReason && !this.$store.state.currentTask) {
+            return "Away";
+        } else {
+            return "Idle";
         }
     }
 
