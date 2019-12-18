@@ -71,7 +71,7 @@ export default class TodoList extends Vue {
     }
 
     start(task: Task) {
-        this.$store.commit(StoreMutations.SetCurrentTask, task);
+        this.$store.dispatch(StoreActions.Start, task);
     }
 }
 </script>

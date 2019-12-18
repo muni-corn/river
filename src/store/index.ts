@@ -21,12 +21,7 @@ export default new Vuex.Store({
         history: [],
         todo: [],
         userName: "",
-        currentTask: {
-            id: -1,
-            name: "Test task",
-            creationDate: new Date(),
-            priv: false
-        },
+        currentTask: null,
         awayReason: null,
         busyTasks: 0
     } as State,
@@ -110,7 +105,7 @@ export default new Vuex.Store({
             commit(StoreMutations.SetTodo, tasksMapped);
         },
 
-        async [StoreActions.NewTask]({ commit }, { name, priv }) {
+        async [StoreActions.NewTask]({ commit, dispatch }, { name, priv }) {
             const rawTask = await HTTPService.newTask(name, priv);
             const task: Task = {
                 id: rawTask.id,
@@ -122,6 +117,20 @@ export default new Vuex.Store({
                 percentComplete: rawTask.percent_complete
             };
             commit(StoreMutations.PushTask, task);
+            dispatch(StoreActions.HistoryPush, {
+                priv: false,
+                title: `Added task "${name}"`,
+                at: new Date()
+            } as HistoryListItem);
+        },
+
+        async [StoreActions.Start]({ commit, dispatch }, task: Task) {
+            dispatch(StoreActions.HistoryPush, {
+                priv: false,
+                title: `Switched to task "${task.name}"`,
+                at: new Date()
+            } as HistoryListItem);
+            commit(StoreMutations.SetCurrentTask, task);
         }
     },
 

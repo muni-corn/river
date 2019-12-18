@@ -1,7 +1,8 @@
 export enum StoreActions {
     HistoryPush = "historyPush",
     GetUserInformation = "getUserInformation",
-    NewTask = "NewTask"
+    NewTask = "NewTask",
+    Start = "start"
 }
 
 export enum StoreMutations {
