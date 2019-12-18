@@ -57,7 +57,7 @@ export default new Vuex.Store({
 
         [StoreMutations.PushTask](state: State, task: Task) {
             state.todo.push(task);
-        },
+        }
     },
 
     actions: {
