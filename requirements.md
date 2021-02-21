@@ -2,7 +2,7 @@
 title: Software Requirements Specification
 subtitle: River
 author: municorn
----
+...
 
 Introduction
 ============================================================
@@ -26,24 +26,24 @@ users are a little more concerned about their privacy, they have the option to
 remove tasks from their history, to-do list, or to hide their current activity.
 
 Requirements
-============================================================
+============
 
-"Must have" requirements
-------------------------------------------------------------
+## "Must have" requirements
 
 -	River *shall*:
 
-	-	display each user's data in a column.
+	-	display each user's data in a column, known as a
+	"River".
 
-		-	Columns shall consist of three components (displayed from top to
+		-	Rivers shall consist of three components (displayed from top to
 		bottom): history list, status window (displays current status), and
 		to-do list. The status window shall be displayed in the exact center of
-		the column.
+		the River.
 
 	-	keep and display a user's history of tasks and changes to their status.
 
 		-	The history component shall be visible as the top portion of a
-		user's column, above their status window.
+		user's River, above their status window.
 
 	-	allow users to:
 
@@ -66,14 +66,35 @@ Requirements
 			-	This functionality is accessed using the same "edit" button as
 			above.
 
-		-	view their teammates' progress *in real-time*.
+		-	view their teammates' progress.
 
-			-	Columns shall be displayed side-by-side, with the user's on the
+			-	Rivers shall be displayed side-by-side, with the user's on the
 			very left (support for right-to-left locales may be supported later
 			on, but will not be required now). River shall provide the ability
-			to scroll to the right and view more columns, whether through use
+			to scroll to the right and view more Rivers, whether through use
 			of the user's mouse (or touchpad or touchscreen), a horizontal
 			scroll bar, or left- and right-arrow icons displayed on-screen that
 			the user can select to scroll left or right, respectively.
 
 	-	automatically keep time on a user's status or task.
+
+## "Stretch" requirements
+
+-	River *will*:
+
+	- allow users to view their teammates' progress *in real-time*
+
+## Main view design
+
+River's main view will look something like this: 
+
+![Main view design](./design.png)\
+
+Where the white, left-most window is the user's current
+status, the gray windows along the center are the teammates'
+statuses, the black above the center is the users' history, and
+the black below the center is users' to-do list.
+
+The right-arrow button on the right allows users to bring
+their teammates' Rivers into view (or view more if those
+Rivers are already in view).
