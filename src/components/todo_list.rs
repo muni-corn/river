@@ -1,7 +1,7 @@
 use yew::prelude::*;
 
 pub struct TodoList {
-    
+    user_id: String
 }
 
 pub enum Msg {
@@ -10,7 +10,7 @@ pub enum Msg {
 
 #[derive(Clone, Properties)]
 pub struct Props {
-
+    pub user_id: String
 }
 
 impl Component for TodoList {
@@ -19,20 +19,24 @@ impl Component for TodoList {
     type Properties = Props;
 
     fn create(props: Self::Properties, link: ComponentLink<Self>) -> Self {
-        todo!()
+        Self {
+            user_id: props.user_id
+        }
     }
 
     fn update(&mut self, msg: Self::Message) -> ShouldRender {
-        todo!()
+        true
     }
 
     fn change(&mut self, _props: Self::Properties) -> ShouldRender {
-        todo!()
+        true
     }
 
     fn view(&self) -> Html {
         html! {
-            { "TodoList" }
+            <div id="todo-list">
+                { "TodoList" }
+            </div>
         }
     }
 }
