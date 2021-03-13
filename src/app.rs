@@ -1,4 +1,4 @@
-use log::*;
+use crate::components::River;
 use serde_derive::{Deserialize, Serialize};
 use yew::format::Json;
 use yew::prelude::*;
@@ -55,16 +55,18 @@ impl Component for App {
     }
 
     fn change(&mut self, _props: Self::Properties) -> ShouldRender {
-        false
+        true
     }
 
     fn update(&mut self, _msg: Self::Message) -> ShouldRender {
-        false
+        true
     }
 
     fn view(&self) -> Html {
         html! {
-            "Hello world!"
+            <div class="column">
+                <River user_id=String::from("asdf") />
+            </div>
         }
     }
 }
