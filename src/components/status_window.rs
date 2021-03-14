@@ -1,4 +1,5 @@
 use yew::prelude::*;
+use crate::task::Task;
 
 enum UserStatus {
     Working(Task),
