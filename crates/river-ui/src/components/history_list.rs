@@ -5,8 +5,7 @@ pub struct HistoryList {
     user_id: UserId,
 }
 
-pub enum Msg {
-}
+pub enum Msg {}
 
 #[derive(Clone, Properties)]
 pub struct Props {
@@ -35,7 +34,8 @@ impl Component for HistoryList {
     fn view(&self) -> Html {
         html! {
             <div id="history-list">
-                { "HistoryList" }
+                { "History" }
+                
             </div>
         }
     }

@@ -5,9 +5,7 @@ pub struct TodoList {
     user_id: UserId
 }
 
-pub enum Msg {
-
-}
+pub enum Msg {}
 
 #[derive(Clone, Properties)]
 pub struct Props {
@@ -21,7 +19,7 @@ impl Component for TodoList {
 
     fn create(props: Self::Properties, link: ComponentLink<Self>) -> Self {
         Self {
-            user_id: props.user_id
+            user_id: props.user_id,
         }
     }
 
@@ -36,7 +34,7 @@ impl Component for TodoList {
     fn view(&self) -> Html {
         html! {
             <div id="todo-list">
-                { "TodoList" }
+                { "To-do" }
             </div>
         }
     }

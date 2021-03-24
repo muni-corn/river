@@ -36,8 +36,15 @@ impl Component for App {
 
     fn view(&self) -> Html {
         html! {
-            <div class="column">
-                <River user_id=10 />
+            <div class="container">
+                <div class="columns">
+                    <div class="column">
+                        <River user_id=10 />
+                    </div>
+                    <div class="column">
+                        { "team members list" }
+                    </div>
+                </div>
             </div>
         }
     }
