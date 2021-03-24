@@ -1,6 +1,5 @@
 use crate::components::River;
 use serde_derive::{Deserialize, Serialize};
-use yew::format::Json;
 use yew::prelude::*;
 use yew::services::storage::{Area, StorageService};
 
@@ -14,19 +13,12 @@ pub struct App {
 
 #[derive(Serialize, Deserialize)]
 pub struct State {
-    entries: Vec<Entry>,
     value: String,
     edit_value: String,
 }
 
-#[derive(Serialize, Deserialize)]
-struct Entry {
-    description: String,
-    completed: bool,
-    editing: bool,
-}
-
 pub enum Msg {
+
 }
 
 impl Component for App {
@@ -35,15 +27,7 @@ impl Component for App {
 
     fn create(_: Self::Properties, link: ComponentLink<Self>) -> Self {
         let storage = StorageService::new(Area::Local).unwrap();
-        let entries = {
-            if let Json(Ok(restored_entries)) = storage.restore(KEY) {
-                restored_entries
-            } else {
-                Vec::new()
-            }
-        };
         let state = State {
-            entries,
             value: "".into(),
             edit_value: "".into(),
         };
