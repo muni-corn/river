@@ -1,19 +1,26 @@
 use yew::prelude::*;
-use crate::task::Task;
+use crate::task::*;
+use yew_feather::edit_3::Edit3;
 
 struct State {
-
+    user_status: UserStatus,
+    edit_state: EditState,
 }
 
 enum UserStatus {
     // The user is working on a Task
     Working(Task),
 
-    // The user is taking a break
-    Break(String),
-    
-    // The user is out for the day
+    // The user is taking a break, with a given reason
+    Away(String),
+
+    // The user isn't present
     Out,
+}
+
+enum EditState {
+    NotEditing,
+    Editing(String), // where the String is the new task name
 }
 
 pub struct StatusWindow {
@@ -40,7 +47,15 @@ impl Component for StatusWindow {
     fn create(props: Self::Properties, link: ComponentLink<Self>) -> Self {
         Self {
             user_id: props.user_id,
-            state: State {}
+            state: State {
+                edit_state: EditState::NotEditing,
+                user_status: UserStatus::Away(String::from("on lunch")),
+                // user_status: UserStatus::Working(Task {
+                //     date_added: chrono::Local::now(),
+                //     title: String::from("Work on River"),
+                //     status: TaskStatus::InProgress(0.25),
+                // }),
+            }
         }
     }
 
@@ -53,12 +68,20 @@ impl Component for StatusWindow {
     }
 
     fn view(&self) -> Html {
+        let task_title = || {
+            match &self.state.user_status {
+                UserStatus::Working(task) => html! { <span class="current-task-title">{&task.title}</span> },
+                UserStatus::Away(reason) => html! { <span class="away-reason">{reason}</span> },
+                UserStatus::Out => html! { <span class="out">{"Out"}</span> },
+            }
+        };
+
         html! {
             <div id="status-window">
                 <div id="status-window-header">
-                    <i data-feather="clock" />
+                    <Edit3 />
                 </div>
-                <span class="current-task-title">{"Work on River"}</span>
+                { task_title() }
             </div>
         }
     }
