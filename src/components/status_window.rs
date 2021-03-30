@@ -1,6 +1,10 @@
 use yew::prelude::*;
 use crate::task::*;
-use yew_feather::edit_3::Edit3;
+use yew_feather::{
+    edit_3::Edit3,
+    x::X,
+    check::Check,
+};
 
 pub struct StatusWindow {
     link: ComponentLink<Self>,
@@ -11,6 +15,7 @@ pub struct StatusWindow {
 struct State {
     user_status: UserStatus,
     edit_state: EditState,
+    edit_value: String,
 }
 
 #[derive(Clone)]
@@ -28,8 +33,7 @@ enum UserStatus {
 #[derive(Clone)]
 enum EditState {
     NotEditing,
-    EditingTaskName(String), // where the String is the new task name
-    EditingAwayReason(String), // where the String is the new away reason
+    Editing,
 }
 
 #[derive(Debug)]
@@ -37,6 +41,8 @@ pub enum Msg {
     EditText,
     ConfirmEdits,
     CancelEdits,
+    UpdateEditValue(String),
+    Nothing,
 }
 
 #[derive(Clone, Properties)]
@@ -55,34 +61,41 @@ impl Component for StatusWindow {
             user_id: props.user_id,
             state: State {
                 edit_state: EditState::NotEditing,
-                // user_status: UserStatus::Working(Task {
-                //     date_added: chrono::Local::now(),
-                //     title: String::from("Work on River"),
-                //     status: TaskStatus::InProgress(0.25),
-                // }),
-                user_status: UserStatus::Away(String::from("on lunch")),
+                user_status: UserStatus::Working(Task {
+                    date_added: chrono::Local::now(),
+                    title: String::from("Work on River"),
+                    status: TaskStatus::InProgress(0.25),
+                }),
+                // user_status: UserStatus::Away(String::from("on lunch")),
+                edit_value: String::new(),
             }
         }
     }
 
     fn update(&mut self, msg: Self::Message) -> ShouldRender {
-        log::info!("{:?}", msg);
         match msg {
             Msg::EditText => match &self.state.user_status {
                 UserStatus::Working(task) =>  {
-                    self.state.edit_state = EditState::EditingTaskName(task.title.clone());
+                    self.state.edit_state = EditState::Editing;
+                    self.state.edit_value = task.title.clone();
                 }
                 UserStatus::Away(reason) =>  {
-                    self.state.edit_state = EditState::EditingAwayReason(reason.to_string());
+                    self.state.edit_state = EditState::Editing;
+                    self.state.edit_value = reason.clone();
                 }
                 _ => ()
             },
-            Msg::ConfirmEdits => match self.state.edit_state.clone() {
-                EditState::EditingTaskName(value) => self.update_current_task_name(&value),
-                EditState::EditingAwayReason(reason) => self.update_away_reason(&reason),
+            Msg::ConfirmEdits => match self.state.user_status {
+                UserStatus::Working(_) => self.update_current_task_name(&self.state.edit_value.clone()),
+                UserStatus::Away(_) => self.update_away_reason(&self.state.edit_value.clone()),
                 _ => (),
             }
             Msg::CancelEdits => self.state.edit_state = EditState::NotEditing,
+            Msg::UpdateEditValue(val) => {
+                self.update_edit_value(&val);
+                return false
+            }
+            _ => (),
         }
         true
     }
@@ -95,9 +108,9 @@ impl Component for StatusWindow {
         let header = || {
             match &self.state.edit_state {
                 EditState::NotEditing => html! {
-                    <div onclick=self.link.callback(|_| Msg::EditText)>
-                        <Edit3 />
-                    </div>
+                    <span class="is-clickable px-2" onclick=self.link.callback(|_| Msg::EditText)>
+                        <Edit3 size=Some(32) />
+                    </span>
                 },
                 _ => html! {}
             }
@@ -116,22 +129,52 @@ impl Component for StatusWindow {
                 EditState::NotEditing => html! {
                     { task_title() }
                 },
-                EditState::EditingTaskName(value) => html! {
-                    <input class="current-task-title" value=value placeholder="Enter a task name" />
+                EditState::Editing => {
+                    let placeholder = match self.state.user_status {
+                        UserStatus::Working(_) => "Enter a task name",
+                        UserStatus::Away(_) => "Whatcha doin'?",
+                        _ => "Enter something?",
+                    };
+
+                    html! {
+                        <input class="input current-task-title" 
+                            value=self.state.edit_value 
+                            placeholder=placeholder
+                            oninput=self.link.callback(|e: InputData| Msg::UpdateEditValue(e.value)) 
+                            onkeypress=self.link.callback(|e: KeyboardEvent| {
+                                if e.key() == "Enter" { Msg::ConfirmEdits } else { Msg::Nothing }
+                            }) />
+                    }
                 },
-                EditState::EditingAwayReason(value) => html! {
-                    <input class="current-task-title" value=value placeholder="Whatcha doin'?" />
+            }
+        };
+
+        let footer = || {
+            match &self.state.edit_state {
+                EditState::NotEditing => html! { },
+                EditState::Editing => html! {
+                    <div class="has-text-right">
+                        <span onclick=self.link.callback(|_| Msg::CancelEdits) class="is-clickable px-2">
+                            <X size=Some(32) />
+                        </span>
+                        <span onclick=self.link.callback(|_| Msg::ConfirmEdits) class="is-clickable px-2">
+                            <Check size=Some(32) />
+                        </span>
+                    </div>
                 },
             }
         };
 
         html! {
             <div id="status-window">
-                <div id="status-window-header">
+                <div id="header" class="pb-2">
                     { header() }
                 </div>
-                <div id="status-window-body">
+                <div id="body">
                     { body() }
+                </div>
+                <div id="footer" class="pt-2">
+                    { footer() }
                 </div>
             </div>
         }
@@ -150,10 +193,15 @@ impl StatusWindow {
     }
 
     fn update_away_reason(&mut self, new_reason: &str) {
-        if let UserStatus::Working(mut t) = self.state.user_status.clone() {
+        if let UserStatus::Away(_) = self.state.user_status.clone() {
             // TODO: reflect changes in the server database
             // TODO: add history item
             self.state.user_status = UserStatus::Away(String::from(new_reason));
+            self.state.edit_state = EditState::NotEditing;
         }
+    }
+
+    fn update_edit_value(&mut self, val: &str) {
+        self.state.edit_value = val.to_string();
     }
 }
