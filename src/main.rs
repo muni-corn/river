@@ -18,7 +18,9 @@ fn main() -> Result<(), JsValue> {
     // set console panic hook
     panic::set_hook(Box::new(console_error_panic_hook::hook));
 
+    // init logger
     wasm_logger::init(wasm_logger::Config::default());
+
     yew::start_app::<app::App>();
     Ok(())
 }

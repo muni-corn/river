@@ -1,5 +1,6 @@
 use chrono::prelude::*;
 
+#[derive(Clone)]
 pub enum TaskStatus {
     NotStarted,
     
@@ -10,6 +11,7 @@ pub enum TaskStatus {
     Done(chrono::DateTime<Local>),
 }
 
+#[derive(Clone)]
 pub struct Task {
     pub date_added: DateTime<Local>,
     pub title: String,
