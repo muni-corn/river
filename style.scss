@@ -14,6 +14,14 @@ html, body {
     border-radius: 16px;
     padding: 32px;
     box-shadow: $shadow;
+
+    .current-task-title, .away-reason, .out {
+        font-size: 32px;
+    }
+
+    .current-task-title {
+        font-weight: 700;
+    }
 }
 
 #history-list, #todo-list {
@@ -31,11 +39,4 @@ html, body {
 
 #todo-list {
     border-radius: 0 0 16px 16px;
-}
-
-#status-window {
-    .current-task-title {
-        font-size: 32px;
-        font-weight: 700;
-    }
 }
