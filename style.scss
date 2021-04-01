@@ -15,12 +15,17 @@ html, body {
     padding: 32px;
     box-shadow: $shadow;
 
-    .current-task-title, .away-reason, .out {
+    .subject {
         font-size: 32px;
+
+        &.bold {
+            font-weight: 700;
+        }
     }
 
-    .current-task-title {
-        font-weight: 700;
+
+    .generic-status {
+        font-size: 16px;
     }
 
     #footer {

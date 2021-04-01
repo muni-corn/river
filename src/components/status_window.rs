@@ -1,15 +1,12 @@
-use yew::prelude::*;
 use crate::task::*;
-use yew_feather::{
-    edit_3::Edit3,
-    x::X,
-    check::Check,
-};
+use yew::prelude::*;
+use yew_feather::{check::Check, chevron_down::ChevronDown, edit_3::Edit3, x::X};
 
 pub struct StatusWindow {
     link: ComponentLink<Self>,
     user_id: String,
     state: State,
+    is_dropdown_active: bool,
 }
 
 struct State {
@@ -30,10 +27,38 @@ enum UserStatus {
     Out,
 }
 
+/// Like `UserStatus`, but without guts
+#[derive(Clone, Copy, Debug)]
+pub enum UserStatusCategory {
+    Working,
+    Away,
+    Out,
+}
+
+impl UserStatusCategory {
+    fn display(&self) -> String {
+        String::from(match self {
+            UserStatusCategory::Working => "Working",
+            UserStatusCategory::Away => "Taking a break",
+            UserStatusCategory::Out => "Out",
+        })
+    }
+}
+
+impl From<UserStatus> for UserStatusCategory {
+    fn from(status: UserStatus) -> Self {
+        match status {
+            UserStatus::Working(_) => Self::Working,
+            UserStatus::Away(_) => Self::Away,
+            UserStatus::Out => Self::Out,
+        }
+    }
+}
+
 #[derive(Clone)]
 enum EditState {
     NotEditing,
-    Editing,
+    Editing(UserStatusCategory),
 }
 
 #[derive(Debug)]
@@ -43,6 +68,8 @@ pub enum Msg {
     CancelEdits,
     UpdateEditValue(String),
     Nothing,
+    ToggleDropdown,
+    ChangeUserStatus(UserStatusCategory),
 }
 
 #[derive(Clone, Properties)]
@@ -68,34 +95,64 @@ impl Component for StatusWindow {
                 }),
                 // user_status: UserStatus::Away(String::from("on lunch")),
                 edit_value: String::new(),
-            }
+            },
+            is_dropdown_active: false,
         }
     }
 
     fn update(&mut self, msg: Self::Message) -> ShouldRender {
         match msg {
             Msg::EditText => match &self.state.user_status {
-                UserStatus::Working(task) =>  {
-                    self.state.edit_state = EditState::Editing;
+                UserStatus::Working(task) => {
+                    self.state.edit_state = EditState::Editing(UserStatusCategory::Working);
                     self.state.edit_value = task.title.clone();
                 }
-                UserStatus::Away(reason) =>  {
-                    self.state.edit_state = EditState::Editing;
+                UserStatus::Away(reason) => {
+                    self.state.edit_state = EditState::Editing(UserStatusCategory::Away);
                     self.state.edit_value = reason.clone();
                 }
-                _ => ()
+                UserStatus::Out => {
+                    self.state.edit_state = EditState::Editing(UserStatusCategory::Out);
+                }
             },
-            Msg::ConfirmEdits => match self.state.user_status {
-                UserStatus::Working(_) => self.update_current_task_name(&self.state.edit_value.clone()),
-                UserStatus::Away(_) => self.update_away_reason(&self.state.edit_value.clone()),
-                _ => (),
+            Msg::ConfirmEdits => {
+                if let EditState::Editing(cat) = self.state.edit_state {
+                    // meow
+                    match cat {
+                        UserStatusCategory::Working => {
+                            self.update_current_task_name(&self.state.edit_value.clone())
+                        }
+                        UserStatusCategory::Away => {
+                            self.update_away_reason(&self.state.edit_value.clone())
+                        }
+                        UserStatusCategory::Out => self.update_as_out(),
+                    }
+                }
             }
             Msg::CancelEdits => self.state.edit_state = EditState::NotEditing,
             Msg::UpdateEditValue(val) => {
                 self.update_edit_value(&val);
-                return false
+                return false;
             }
-            _ => (),
+            Msg::ToggleDropdown => self.is_dropdown_active = !self.is_dropdown_active,
+            Msg::ChangeUserStatus(cat) => {
+                match cat {
+                    // meow
+                    UserStatusCategory::Working => {
+                        self.state.edit_state = EditState::Editing(UserStatusCategory::Working);
+                        self.state.edit_value = String::new();
+                    }
+                    UserStatusCategory::Away => {
+                        self.state.edit_state = EditState::Editing(UserStatusCategory::Away);
+                        self.state.edit_value = String::new();
+                    }
+                    UserStatusCategory::Out => {
+                        self.state.edit_state = EditState::Editing(UserStatusCategory::Out);
+                    }
+                }
+                self.is_dropdown_active = false;
+            }
+            Msg::Nothing => (),
         }
         true
     }
@@ -106,22 +163,73 @@ impl Component for StatusWindow {
 
     fn view(&self) -> Html {
         let header = || {
+            let dropdown = |cat: UserStatusCategory| {
+                // meow
+                let dropdown_item = |cat: UserStatusCategory| {
+                    html! {
+                        // meow
+                        <a class="dropdown-item" onclick=self.link.callback(move |_| Msg::ChangeUserStatus(cat))>{cat.display()}</a>
+                    }
+                };
+                let dropdown_class = || {
+                    if self.is_dropdown_active {
+                        "dropdown is-active"
+                    } else {
+                        "dropdown"
+                    }
+                };
+                html! {
+                    <div class={ dropdown_class() }>
+                        <div class="dropdown-trigger">
+                            <button class="button" onclick=self.link.callback(|_| Msg::ToggleDropdown)>
+                                <span class="generic-status">{cat.display()}</span>
+                                <span class="icon">
+                                    <ChevronDown />
+                                </span>
+                            </button>
+                        </div>
+                        <div class="dropdown-menu">
+                            <div class="dropdown-content">
+                                { dropdown_item(UserStatusCategory::Working) }
+                                { dropdown_item(UserStatusCategory::Away) }
+                                { dropdown_item(UserStatusCategory::Out) }
+                            </div>
+                        </div>
+                    </div>
+                }
+            };
+
             match &self.state.edit_state {
                 EditState::NotEditing => html! {
-                    <span class="is-clickable px-2" onclick=self.link.callback(|_| Msg::EditText)>
-                        <Edit3 size=Some(32) />
-                    </span>
+                    <div class="level">
+                        <div class="level-left">
+                            <span class="generic-status">{UserStatusCategory::from(self.state.user_status.clone()).display()}</span>
+                        </div>
+                        <div class="level-right">
+                            <span class="is-clickable px-2" onclick=self.link.callback(|_| Msg::EditText)>
+                                <Edit3 size=Some(32) />
+                            </span>
+                        </div>
+                    </div>
                 },
-                _ => html! {}
+                EditState::Editing(cat) => html! {
+                    // meow
+                    <div class="level">
+                        <div class="level-left">
+                            { dropdown(*cat) }
+                        </div>
+                        <div class="level-right">
+                        </div>
+                    </div>
+                },
+                _ => html! {},
             }
         };
 
-        let task_title = || {
-            match &self.state.user_status {
-                UserStatus::Working(task) => html! { <span class="current-task-title">{&task.title}</span> },
-                UserStatus::Away(reason) => html! { <span class="away-reason">{reason}</span> },
-                UserStatus::Out => html! { <span class="out">{"Out"}</span> },
-            }
+        let task_title = || match &self.state.user_status {
+            UserStatus::Working(task) => html! { <span class="subject bold">{&task.title}</span> },
+            UserStatus::Away(reason) => html! { <span class="subject">{reason}</span> },
+            UserStatus::Out => html! { <span class="subject">{"Out for now"}</span> },
         };
 
         let body = || {
@@ -129,40 +237,51 @@ impl Component for StatusWindow {
                 EditState::NotEditing => html! {
                     { task_title() }
                 },
-                EditState::Editing => {
-                    let placeholder = match self.state.user_status {
-                        UserStatus::Working(_) => "Enter a task name",
-                        UserStatus::Away(_) => "Whatcha doin'?",
+                EditState::Editing(cat) => {
+                    // meow
+                    let placeholder = match cat {
+                        UserStatusCategory::Working => "Enter a task name",
+                        UserStatusCategory::Away => "Whatcha doin'?",
                         _ => "Enter something?",
                     };
 
-                    html! {
-                        <input class="input current-task-title" 
-                            value=self.state.edit_value 
-                            placeholder=placeholder
-                            oninput=self.link.callback(|e: InputData| Msg::UpdateEditValue(e.value)) 
-                            onkeypress=self.link.callback(|e: KeyboardEvent| {
-                                if e.key() == "Enter" { Msg::ConfirmEdits } else { Msg::Nothing }
-                            }) />
+                    match cat {
+                        UserStatusCategory::Working | UserStatusCategory::Away => {
+                            let class = match cat {
+                                UserStatusCategory::Working => "input subject bold",
+                                UserStatusCategory::Away => "input subject",
+                                _ => "subject",
+                            };
+                            html! {
+                                <input class=class
+                                    value=self.state.edit_value
+                                    placeholder=placeholder
+                                    oninput=self.link.callback(|e: InputData| Msg::UpdateEditValue(e.value))
+                                    onkeypress=self.link.callback(|e: KeyboardEvent| {
+                                        if e.key() == "Enter" { Msg::ConfirmEdits } else { Msg::Nothing }
+                                    }) />
+                            }
+                        }
+                        UserStatusCategory::Out => html! {
+                            <span class="subject">{"Out for now"}</span>
+                        },
                     }
-                },
+                }
             }
         };
 
-        let footer = || {
-            match &self.state.edit_state {
-                EditState::NotEditing => html! { },
-                EditState::Editing => html! {
-                    <div class="has-text-right">
-                        <span onclick=self.link.callback(|_| Msg::CancelEdits) class="is-clickable px-2">
-                            <X size=Some(32) />
-                        </span>
-                        <span onclick=self.link.callback(|_| Msg::ConfirmEdits) class="is-clickable px-2">
-                            <Check size=Some(32) />
-                        </span>
-                    </div>
-                },
-            }
+        let footer = || match &self.state.edit_state {
+            EditState::NotEditing => html! {},
+            EditState::Editing(_) => html! {
+                <div class="has-text-right">
+                    <span onclick=self.link.callback(|_| Msg::CancelEdits) class="is-clickable px-2">
+                        <X size=Some(32) />
+                    </span>
+                    <span onclick=self.link.callback(|_| Msg::ConfirmEdits) class="is-clickable px-2">
+                        <Check size=Some(32) />
+                    </span>
+                </div>
+            },
         };
 
         html! {
@@ -183,20 +302,41 @@ impl Component for StatusWindow {
 
 impl StatusWindow {
     fn update_current_task_name(&mut self, new_name: &str) {
-        if let UserStatus::Working(mut t) = self.state.user_status.clone() {
-            t.title = String::from(new_name);
-            // TODO: reflect changes in the server database
-            // TODO: add history item
-            self.state.user_status = UserStatus::Working(t);
-            self.state.edit_state = EditState::NotEditing;
+        if let EditState::Editing(UserStatusCategory::Working) = self.state.edit_state {
+            if let UserStatus::Working(mut t) = self.state.user_status.clone() {
+                t.title = String::from(new_name);
+                self.state.user_status = UserStatus::Working(t);
+                // TODO: reflect changes in the server database
+                // TODO: add history item
+                self.state.edit_state = EditState::NotEditing;
+            } else {
+                self.state.user_status = UserStatus::Working(Task {
+                    date_added: chrono::Local::now(),
+                    title: new_name.to_string(),
+                    status: TaskStatus::InProgress(0.0),
+                });
+                // Add a new task with the new name
+                // TODO: add task in the server database
+                // TODO: add history item
+                self.state.edit_state = EditState::NotEditing;
+            }
         }
     }
 
     fn update_away_reason(&mut self, new_reason: &str) {
-        if let UserStatus::Away(_) = self.state.user_status.clone() {
+        if let EditState::Editing(UserStatusCategory::Away) = self.state.edit_state {
+            self.state.user_status = UserStatus::Away(String::from(new_reason));
             // TODO: reflect changes in the server database
             // TODO: add history item
-            self.state.user_status = UserStatus::Away(String::from(new_reason));
+            self.state.edit_state = EditState::NotEditing;
+        }
+    }
+
+    fn update_as_out(&mut self) {
+        if let EditState::Editing(UserStatusCategory::Out) = self.state.edit_state {
+            self.state.user_status = UserStatus::Out;
+            // TODO: reflect changes in the server database
+            // TODO: add history item
             self.state.edit_state = EditState::NotEditing;
         }
     }
