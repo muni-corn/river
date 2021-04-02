@@ -3,6 +3,7 @@
 mod agents;
 mod app;
 mod components;
+mod history_item;
 mod task;
 
 use wasm_bindgen::prelude::*;
