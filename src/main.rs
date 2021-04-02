@@ -11,6 +11,7 @@ use std::panic;
 
 type TaskId = String;
 type UserId = String;
+type HistoryId = String;
 
 // When the `wee_alloc` feature is enabled, use `wee_alloc` as the global
 // allocator.
