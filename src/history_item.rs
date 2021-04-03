@@ -1,5 +1,6 @@
 use crate::{TaskId, UserId};
 
+#[derive(Debug)]
 pub enum HistoryItem {
     /// The user added a task
     TaskAdded(TaskId),
