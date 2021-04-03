@@ -1,0 +1,30 @@
+[package]
+authors = ["municorn <municorn@musicaloft.com>"]
+edition = "2018"
+name = "river"
+version = "0.2.0"
+[dependencies]
+console_error_panic_hook = "0.1.6"
+log = "0.4"
+serde = "1"
+serde_derive = "1"
+tungstenite = "*"
+wasm-bindgen = "0.2.58"
+wasm-logger = "0.2"
+yew = "0.17"
+yew-feather = "0.1"
+
+[dependencies.chrono]
+features = ["wasmbind"]
+version = "0.4"
+
+[dependencies.web-sys]
+features = ["KeyboardEvent"]
+version = "0.3.4"
+
+[dependencies.wee_alloc]
+optional = true
+version = "0.4.4"
+
+[dev-dependencies]
+wasm-bindgen-test = "0.3"

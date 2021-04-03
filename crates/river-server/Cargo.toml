@@ -1,0 +1,9 @@
+[package]
+authors = ["municorn <municorn@musicaloft.com>"]
+edition = "2018"
+name = "river-server"
+version = "0.1.0"
+
+[dependencies]
+tungstenite = "0.13.0" # Lightweight stream-based WebSocket implementation
+postgres = "0.19.1" # A native, synchronous PostgreSQL client
