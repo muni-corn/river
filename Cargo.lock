@@ -850,8 +850,8 @@ dependencies = [
  "chrono",
  "console_error_panic_hook",
  "log",
+ "river-core",
  "serde",
- "serde_derive",
  "tungstenite",
  "wasm-bindgen",
  "wasm-bindgen-test",
@@ -860,6 +860,13 @@ dependencies = [
  "wee_alloc",
  "yew",
  "yew-feather",
+]
+
+[[package]]
+name = "river-core"
+version = "0.1.0"
+dependencies = [
+ "chrono",
 ]
 
 [[package]]

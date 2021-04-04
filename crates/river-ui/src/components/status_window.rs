@@ -1,58 +1,24 @@
+use std::error::Error;
+use serde::{Deserialize, Serialize};
+
 use crate::task::*;
-use yew::prelude::*;
+use yew::{prelude::*, services::websocket::*, format::Json};
 use yew_feather::{check::Check, chevron_down::ChevronDown, edit_3::Edit3, x::X};
+use river_core::{Task, TaskStatus, UserStatus, UserStatusCategory};
 
 pub struct StatusWindow {
     link: ComponentLink<Self>,
     user_id: String,
     state: State,
     is_dropdown_active: bool,
+
+    ws: Option<WebSocketTask>,
 }
 
 struct State {
     user_status: UserStatus,
     edit_state: EditState,
     edit_value: String,
-}
-
-#[derive(Clone)]
-enum UserStatus {
-    // The user is working on a Task
-    Working(Task),
-
-    // The user is taking a break, with a given reason
-    Away(String),
-
-    // The user isn't present
-    Out,
-}
-
-/// Like `UserStatus`, but without guts
-#[derive(Clone, Copy, Debug)]
-pub enum UserStatusCategory {
-    Working,
-    Away,
-    Out,
-}
-
-impl UserStatusCategory {
-    fn display(&self) -> String {
-        String::from(match self {
-            UserStatusCategory::Working => "Working",
-            UserStatusCategory::Away => "Taking a break",
-            UserStatusCategory::Out => "Out",
-        })
-    }
-}
-
-impl From<UserStatus> for UserStatusCategory {
-    fn from(status: UserStatus) -> Self {
-        match status {
-            UserStatus::Working(_) => Self::Working,
-            UserStatus::Away(_) => Self::Away,
-            UserStatus::Out => Self::Out,
-        }
-    }
 }
 
 #[derive(Clone)]
@@ -70,6 +36,9 @@ pub enum Msg {
     Nothing,
     ToggleDropdown,
     ChangeUserStatus(UserStatusCategory),
+
+    WebSocket(WebSocketAction),
+    WebSocketResponseReady(Result<WsResponse, Box<dyn Error>>),
 }
 
 #[derive(Clone, Properties)]
@@ -97,6 +66,7 @@ impl Component for StatusWindow {
                 edit_value: String::new(),
             },
             is_dropdown_active: false,
+            ws: None,
         }
     }
 
@@ -153,6 +123,8 @@ impl Component for StatusWindow {
                 self.is_dropdown_active = false;
             }
             Msg::Nothing => (),
+            Msg::WebSocket(action) => self.do_web_socket(action),
+            Msg::WebSocketResponseReady => (),
         }
         true
     }
@@ -290,6 +262,7 @@ impl Component for StatusWindow {
                     { header() }
                 </div>
                 <div id="body">
+                    <button class="button" onclick=self.link.callback(|_| Msg::WebSocket(WebSocketAction::Connect))>{"connect"}</button>
                     { body() }
                 </div>
                 <div id="footer" class="pt-2">
@@ -344,4 +317,47 @@ impl StatusWindow {
     fn update_edit_value(&mut self, val: &str) {
         self.state.edit_value = val.to_string();
     }
+
+    fn do_web_socket(&self, action: WebSocketAction) {
+        match action {
+            WebSocketAction::Connect => {
+                let callback = self.link.callback(|Json(data)| Msg::WebSocketResponseReady(data));
+                let notification = self.link.batch_callback(|status| match status {
+                    WebSocketStatus::Opened => vec![],
+                    WebSocketStatus::Closed | WebSocketStatus::Error => {
+                        vec![WebSocketAction::Terminated.into()]
+                    }
+                });
+                let task =
+                    WebSocketService::connect("ws://localhost:9001/", callback, notification)
+                    .unwrap();
+                self.ws = Some(task);
+            }
+            WebSocketAction::Disconnect => {}
+            WebSocketAction::Send(_) => {}
+            WebSocketAction::Terminated => {}
+        }
+    }
 }
+
+type AsBinary = bool;
+
+#[derive(Debug)]
+enum WebSocketAction {
+    Connect,
+    Disconnect,
+    Send(AsBinary),
+    Terminated,
+}
+
+impl From<WebSocketAction> for Msg {
+    fn from(action: WebSocketAction) -> Self {
+        Msg::WebSocket(action)
+    }
+}
+
+// /// This type is an expected response from a websocket connection.
+// #[derive(Deserialize, Debug)]
+// pub struct WsResponse {
+//     value: u32,
+// }
