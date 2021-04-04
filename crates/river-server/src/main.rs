@@ -6,7 +6,7 @@ use tungstenite::{
 };
 
 fn main() {
-    let server = TcpListener::bind("127.0.0.1:3012").unwrap();
+    let server = TcpListener::bind("127.0.0.1:9001").unwrap();
     for stream in server.incoming() {
         spawn(move || {
             let callback = |req: &Request, mut response: Response| {

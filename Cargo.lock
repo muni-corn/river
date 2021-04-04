@@ -847,12 +847,12 @@ dependencies = [
 name = "river"
 version = "0.2.0"
 dependencies = [
+ "anyhow",
  "chrono",
  "console_error_panic_hook",
  "log",
  "river-core",
  "serde",
- "tungstenite",
  "wasm-bindgen",
  "wasm-bindgen-test",
  "wasm-logger",
@@ -867,6 +867,7 @@ name = "river-core"
 version = "0.1.0"
 dependencies = [
  "chrono",
+ "serde",
 ]
 
 [[package]]

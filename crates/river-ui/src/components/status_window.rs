@@ -1,10 +1,8 @@
-use std::error::Error;
+use river_core::*;
 use serde::{Deserialize, Serialize};
 
-use crate::task::*;
 use yew::{prelude::*, services::websocket::*, format::Json};
 use yew_feather::{check::Check, chevron_down::ChevronDown, edit_3::Edit3, x::X};
-use river_core::{Task, TaskStatus, UserStatus, UserStatusCategory};
 
 pub struct StatusWindow {
     link: ComponentLink<Self>,
@@ -38,7 +36,7 @@ pub enum Msg {
     ChangeUserStatus(UserStatusCategory),
 
     WebSocket(WebSocketAction),
-    WebSocketResponseReady(Result<WsResponse, Box<dyn Error>>),
+    WebSocketResponseReady(Result<WebSocketResponse, anyhow::Error>),
 }
 
 #[derive(Clone, Properties)]
@@ -124,7 +122,7 @@ impl Component for StatusWindow {
             }
             Msg::Nothing => (),
             Msg::WebSocket(action) => self.do_web_socket(action),
-            Msg::WebSocketResponseReady => (),
+            Msg::WebSocketResponseReady(res) => log::info!("{:?}", res),
         }
         true
     }
@@ -263,6 +261,7 @@ impl Component for StatusWindow {
                 </div>
                 <div id="body">
                     <button class="button" onclick=self.link.callback(|_| Msg::WebSocket(WebSocketAction::Connect))>{"connect"}</button>
+                    <button class="button" onclick=self.link.callback(|_| Msg::WebSocket(WebSocketAction::Send(false)))>{"send"}</button>
                     { body() }
                 </div>
                 <div id="footer" class="pt-2">
@@ -318,36 +317,37 @@ impl StatusWindow {
         self.state.edit_value = val.to_string();
     }
 
-    fn do_web_socket(&self, action: WebSocketAction) {
+    fn do_web_socket(&mut self, action: WebSocketAction) {
         match action {
             WebSocketAction::Connect => {
-                let callback = self.link.callback(|Json(data)| Msg::WebSocketResponseReady(data));
+                log::info!("connecting");
+                let callback = self.link.callback(|Json(data): Json<Result<WsResponse, anyhow::Error>>| Msg::WebSocketResponseReady(data));
                 let notification = self.link.batch_callback(|status| match status {
                     WebSocketStatus::Opened => vec![],
                     WebSocketStatus::Closed | WebSocketStatus::Error => {
                         vec![WebSocketAction::Terminated.into()]
                     }
                 });
+
                 let task =
                     WebSocketService::connect("ws://localhost:9001/", callback, notification)
                     .unwrap();
+
                 self.ws = Some(task);
+                log::info!("done?");
             }
-            WebSocketAction::Disconnect => {}
-            WebSocketAction::Send(_) => {}
-            WebSocketAction::Terminated => {}
+            WebSocketAction::Disconnect => { log::warn!("Disconnecting") }
+            WebSocketAction::Send(as_binary) => {
+                let request = WebSocketRequest { value: 321 };
+                if as_binary {
+                    self.ws.as_mut().unwrap().send_binary(Json(&request));
+                } else {
+                    self.ws.as_mut().unwrap().send(Json(&request));
+                }
+            }
+            WebSocketAction::Terminated => {log::error!("WS connection terminated")}
         }
     }
-}
-
-type AsBinary = bool;
-
-#[derive(Debug)]
-enum WebSocketAction {
-    Connect,
-    Disconnect,
-    Send(AsBinary),
-    Terminated,
 }
 
 impl From<WebSocketAction> for Msg {
@@ -355,9 +355,3 @@ impl From<WebSocketAction> for Msg {
         Msg::WebSocket(action)
     }
 }
-
-// /// This type is an expected response from a websocket connection.
-// #[derive(Deserialize, Debug)]
-// pub struct WsResponse {
-//     value: u32,
-// }

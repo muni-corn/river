@@ -1,5 +1,5 @@
 use crate::components::River;
-use serde_derive::{Deserialize, Serialize};
+use serde::{Deserialize, Serialize};
 use yew::prelude::*;
 use yew::services::storage::{Area, StorageService};
 

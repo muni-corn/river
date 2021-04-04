@@ -1,3 +1,4 @@
+use serde::{Deserialize, Serialize};
 use chrono::prelude::*;
 
 #[derive(Clone)]
@@ -56,4 +57,28 @@ impl From<UserStatus> for UserStatusCategory {
             UserStatus::Out => Self::Out,
         }
     }
+}
+
+pub type AsBinary = bool;
+
+#[derive(Debug)]
+pub enum WebSocketAction {
+    Connect,
+    Disconnect,
+    Send(AsBinary),
+    Terminated,
+}
+
+/// This type is an expected response from a websocket connection.
+#[derive(Deserialize, Debug)]
+pub struct WebSocketResponseBody {
+    value: u32
+}
+
+pub type WebSocketResponse = Result<WebSocketResponseBody, anyhow::Error>;
+
+/// This type is used as a request which sent to websocket connection.
+#[derive(Serialize, Debug)]
+struct WebSocketRequest {
+    value: u32,
 }
