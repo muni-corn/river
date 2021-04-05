@@ -1,4 +1,5 @@
 use chrono::prelude::*;
+use diesel::Queryable;
 use crate::schema::tasks;
 use serde::{Deserialize, Serialize};
 
@@ -19,7 +20,7 @@ pub enum TaskStatus {
 
 #[derive(Deserialize, Serialize, Clone, Debug)]
 pub struct Task {
-    pub id: TaskId,
+    pub id: TaskId, // should be an option?
     pub date_added: DateTime<Local>,
     pub title: String,
     pub status: TaskStatus,
@@ -27,10 +28,7 @@ pub struct Task {
 
 impl Task {
     pub fn is_started(&self) -> bool {
-        match self.status {
-            TaskStatus::NotStarted => false,
-            _ => true
-        }
+        !matches!(self.status, TaskStatus::NotStarted)
     }
 
     pub fn percent_complete(&self) -> Option<f32> {
@@ -49,40 +47,17 @@ impl Task {
     }
 }
 
-/// A version of `Task` compatible with an SQL database.
-#[derive(Queryable, Insertable)]
-#[table_name = "tasks"]
-pub struct SqlTask {
-    id: TaskId,
-    title: String,
-    date_added: DateTime<Utc>,
-    started: bool,
-    percent_complete: Option<f32>,
-    date_completed: Option<DateTime<Utc>>,
-}
+type TaskSqlRow = (TaskId, String, DateTime<Utc>, bool, Option<f32>, Option<DateTime<Utc>>);
 
-impl From<Task> for SqlTask {
-    fn from(t: Task) -> Self {
-        Self {
-            id: t.id,
-            title: t.title.clone(),
-            date_added: t.date_added.with_timezone(&Utc),
-            started: t.is_started(),
-            percent_complete: t.percent_complete(),
-            date_completed: t.date_completed().map(|d| d.with_timezone(&Utc)),
-        }
-    }
-}
+impl Queryable<crate::schema::tasks::SqlType, crate::Db> for Task {
+    type Row = TaskSqlRow;
 
-impl From<SqlTask> for Task {
-    fn from(sql: SqlTask) -> Self {
-        let id = sql.id;
-        let date_added = sql.date_added.with_timezone(&Local);
-        let title = sql.title;
-        let status = if let Some(date) = sql.date_completed {
+    fn build(row: Self::Row) -> Self {
+        let (id, title, date_added, started, percent_complete_opt, date_completed_opt) = row;
+        let status = if let Some(date) = date_completed_opt {
             TaskStatus::Done(date.with_timezone(&Local))
-        } else if sql.started {
-            if let Some(p) = sql.percent_complete {
+        } else if started {
+            if let Some(p) = percent_complete_opt {
                 TaskStatus::InProgress(p)
             } else {
                 TaskStatus::InProgress(0.0)
@@ -93,9 +68,32 @@ impl From<SqlTask> for Task {
 
         Self {
             id,
-            date_added,
+            date_added: date_added.with_timezone(&Local),
             title,
             status
+        }
+    }
+}
+
+/// A version of `Task` compatible with an SQL database.
+#[derive(Insertable)]
+#[table_name = "tasks"]
+pub struct InsertableTask {
+    title: String,
+    date_added: DateTime<Utc>,
+    started: bool,
+    percent_complete: Option<f32>,
+    date_completed: Option<DateTime<Utc>>,
+}
+
+impl From<Task> for InsertableTask {
+    fn from(t: Task) -> Self {
+        Self {
+            title: t.title.clone(),
+            date_added: t.date_added.with_timezone(&Utc),
+            started: t.is_started(),
+            percent_complete: t.percent_complete(),
+            date_completed: t.date_completed().map(|d| d.with_timezone(&Utc)),
         }
     }
 }
