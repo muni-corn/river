@@ -1,0 +1,44 @@
+use super::Task;
+
+pub type UserId = u64;
+
+#[derive(Clone)]
+pub enum UserStatus {
+    // The user is working on a Task
+    Working(Task),
+
+    // The user is taking a break, with a given reason
+    Away(String),
+
+    // The user isn't present
+    Out,
+}
+
+/// Like `UserStatus`, but without guts
+#[derive(Clone, Copy, Debug)]
+pub enum UserStatusCategory {
+    Working,
+    Away,
+    Out,
+}
+
+impl UserStatusCategory {
+    pub fn display(&self) -> String {
+        String::from(match self {
+            UserStatusCategory::Working => "Working",
+            UserStatusCategory::Away => "Taking a break",
+            UserStatusCategory::Out => "Out",
+        })
+    }
+}
+
+impl From<UserStatus> for UserStatusCategory {
+    fn from(status: UserStatus) -> Self {
+        match status {
+            UserStatus::Working(_) => Self::Working,
+            UserStatus::Away(_) => Self::Away,
+            UserStatus::Out => Self::Out,
+        }
+    }
+}
+
