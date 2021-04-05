@@ -1,12 +1,16 @@
-use std::fmt::Display;
+#[macro_use] extern crate diesel;
 
+use std::fmt::Display;
 use serde::{Deserialize, Serialize};
 
 mod task;
 mod user;
+mod schema;
 
 pub use task::*;
+pub use user::*;
 
+type Db = diesel::pg::Pg;
 
 pub type AsBinary = bool;
 

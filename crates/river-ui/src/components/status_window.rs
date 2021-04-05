@@ -36,7 +36,7 @@ pub enum Msg {
     ChangeUserStatus(UserStatusCategory),
 
     WebSocket(WebSocketAction),
-    WebSocketResponseReady(Result<WebSocketResponse, anyhow::Error>),
+    WebSocketResponseReady(WebSocketResponse),
 }
 
 #[derive(Clone, Properties)]
@@ -321,7 +321,7 @@ impl StatusWindow {
         match action {
             WebSocketAction::Connect => {
                 log::info!("connecting");
-                let callback = self.link.callback(|Json(data): Json<Result<WsResponse, anyhow::Error>>| Msg::WebSocketResponseReady(data));
+                let callback = self.link.callback(|Json(data): Json<WebSocketResponse>| Msg::WebSocketResponseReady(data));
                 let notification = self.link.batch_callback(|status| match status {
                     WebSocketStatus::Opened => vec![],
                     WebSocketStatus::Closed | WebSocketStatus::Error => {

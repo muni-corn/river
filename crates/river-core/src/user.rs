@@ -1,8 +1,15 @@
 use super::Task;
+use serde::{Deserialize, Serialize};
 
 pub type UserId = u64;
 
-#[derive(Clone)]
+#[derive(Deserialize, Serialize, Clone, Debug)]
+pub struct User {
+    id: UserId,
+    status: UserStatus,
+}
+
+#[derive(Deserialize, Serialize, Clone, Debug)]
 pub enum UserStatus {
     // The user is working on a Task
     Working(Task),
