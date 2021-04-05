@@ -1,5 +1,5 @@
 use chrono::prelude::*;
-use diesel::prelude::*;
+use crate::schema::tasks;
 use serde::{Deserialize, Serialize};
 
 pub type TaskId = i32;
@@ -25,8 +25,6 @@ pub struct Task {
     pub status: TaskStatus,
 }
 
-type TaskSqlRow = (TaskId, String, chrono::DateTime<Utc>, bool, Option<f32>, Option<chrono::DateTime<Utc>>);
-
 #[derive(Queryable, Insertable)]
 #[table_name = "tasks"]
 pub struct SqlTask {
@@ -36,4 +34,10 @@ pub struct SqlTask {
     started: bool,
     percent_complete: f32,
     date_completed: DateTime<Utc>,
+}
+
+impl From<SqlTask> for Task {
+    fn from(_: SqlTask) -> Self {
+        todo!()
+    }
 }
