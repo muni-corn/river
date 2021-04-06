@@ -187,7 +187,7 @@ fn set_user_out(user_id: UserId) -> DbResult<()> {
 //     // };
 // }
 
-type DbResult<T> = Result<T, DbError>;
+pub type DbResult<T> = Result<T, DbError>;
 
 #[derive(Debug)]
 enum DbError {

@@ -13,7 +13,7 @@ use api::*;
 fn main() {
     let api_thread_handle = Builder::new().name(String::from("api")).spawn(|| {
         let rocket_config = Config::build(Environment::Staging)
-            .port(6000)
+            .port(8800)
             .finalize()
             .unwrap();
 
@@ -23,7 +23,7 @@ fn main() {
     }).unwrap();
 
     let ws_thread_handle = Builder::new().name(String::from("websockets")).spawn(|| {
-        let ws_server = TcpListener::bind("127.0.0.1:6001").unwrap();
+        let ws_server = TcpListener::bind("127.0.0.1:8801").unwrap();
         handle_websockets(ws_server);
     }).unwrap();
 
