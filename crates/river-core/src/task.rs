@@ -1,5 +1,6 @@
 use chrono::prelude::*;
 use diesel::Queryable;
+use crate::UserId;
 use crate::schema::tasks;
 use serde::{Deserialize, Serialize};
 
@@ -20,7 +21,8 @@ pub enum TaskStatus {
 
 #[derive(Deserialize, Serialize, Clone, Debug)]
 pub struct Task {
-    pub id: Option<TaskId>, // no id means it's not in the database
+    pub id: Option<TaskId>, // no id means it's not in the database yet
+    pub creator_id: UserId,
     pub date_added: DateTime<Local>,
     pub title: String,
     pub status: TaskStatus,
@@ -47,13 +49,13 @@ impl Task {
     }
 }
 
-type TaskSqlRow = (TaskId, String, DateTime<Utc>, bool, Option<f32>, Option<DateTime<Utc>>);
+type TaskSqlRow = (TaskId, String, DateTime<Utc>, bool, Option<f32>, Option<DateTime<Utc>>, UserId);
 
 impl Queryable<crate::schema::tasks::SqlType, crate::Db> for Task {
     type Row = TaskSqlRow;
 
     fn build(row: Self::Row) -> Self {
-        let (id, title, date_added, started, percent_complete_opt, date_completed_opt) = row;
+        let (id, title, date_added, started, percent_complete_opt, date_completed_opt, creator_id) = row;
         let status = if let Some(date) = date_completed_opt {
             TaskStatus::Done(date.with_timezone(&Local))
         } else if started {
@@ -68,6 +70,7 @@ impl Queryable<crate::schema::tasks::SqlType, crate::Db> for Task {
 
         Self {
             id: Some(id),
+            creator_id,
             date_added: date_added.with_timezone(&Local),
             title,
             status
