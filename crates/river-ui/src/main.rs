@@ -2,7 +2,6 @@
 
 mod app;
 mod components;
-mod task;
 
 use wasm_bindgen::prelude::*;
 use std::panic;
