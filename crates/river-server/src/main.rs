@@ -2,9 +2,8 @@
 
 #[macro_use] extern crate rocket;
 
-use std::{net::TcpListener, thread::spawn};
-use tungstenite::accept;
-use rocket::routes;
+use std::{net::TcpListener, thread::{spawn, Builder}};
+use rocket::{Config, config::Environment, routes};
 
 mod api;
 mod db;
@@ -12,12 +11,29 @@ mod db;
 use api::*;
 
 fn main() {
-    let server = TcpListener::bind("127.0.0.1:9001").unwrap();
-    // rocket::ignite().mount("/", routes![hello]).launch();
-    handle_websockets(server);
+    let api_thread_handle = Builder::new().name(String::from("api")).spawn(|| {
+        let rocket_config = Config::build(Environment::Staging)
+            .port(6000)
+            .finalize()
+            .unwrap();
+
+        rocket::custom(rocket_config)
+            .mount("/", routes![test])
+            .launch();
+    }).unwrap();
+
+    let ws_thread_handle = Builder::new().name(String::from("websockets")).spawn(|| {
+        let ws_server = TcpListener::bind("127.0.0.1:6001").unwrap();
+        handle_websockets(ws_server);
+    }).unwrap();
+
+    let _ = api_thread_handle.join();
+    let _ = ws_thread_handle.join();
 }
 
 fn handle_websockets(server: TcpListener) {
+    use tungstenite::accept;
+
     for stream in server.incoming() {
         spawn(move || {
             let mut websocket = accept(stream.unwrap()).unwrap();
