@@ -8,12 +8,14 @@ pub struct StatusWindow {
     link: ComponentLink<Self>,
     user_id: String,
     state: State,
+
     is_dropdown_active: bool,
 
     ws: Option<WebSocketTask>,
 }
 
 struct State {
+    current_task: Option<Task>,
     user_status: UserStatus,
     edit_state: EditState,
     edit_value: String,
@@ -50,16 +52,21 @@ impl Component for StatusWindow {
     type Properties = Props;
 
     fn create(props: Self::Properties, link: ComponentLink<Self>) -> Self {
+        use chrono::prelude::*;
+
         Self {
             link,
             user_id: props.user_id,
             state: State {
-                edit_state: EditState::NotEditing,
-                user_status: UserStatus::Working(Task {
-                    date_added: chrono::Local::now(),
-                    title: String::from("Work on River"),
-                    status: TaskStatus::InProgress(0.25),
+                current_task: Some(Task {
+                    id: None,
+                    creator_id: 1, // TODO use actual id
+                    date_added: Local::now(),
+                    title: String::from("Finish River"),
+                    status: TaskStatus::InProgress(0.5),
                 }),
+                edit_state: EditState::NotEditing,
+                user_status: UserStatus::Working(Some(1)),
                 // user_status: UserStatus::Away(String::from("on lunch")),
                 edit_value: String::new(),
             },
@@ -71,9 +78,14 @@ impl Component for StatusWindow {
     fn update(&mut self, msg: Self::Message) -> ShouldRender {
         match msg {
             Msg::EditText => match &self.state.user_status {
-                UserStatus::Working(task) => {
+                UserStatus::Working(_) => {
                     self.state.edit_state = EditState::Editing(UserStatusCategory::Working);
-                    self.state.edit_value = task.title.clone();
+                    if let Some(t) = &self.state.current_task {
+                        // TODO: fetch actual task title
+                        self.state.edit_value = t.title.clone();
+                    } else {
+                        self.state.edit_value = String::new();
+                    }
                 }
                 UserStatus::Away(reason) => {
                     self.state.edit_state = EditState::Editing(UserStatusCategory::Away);
@@ -151,21 +163,21 @@ impl Component for StatusWindow {
                 html! {
                     <div class={ dropdown_class() }>
                         <div class="dropdown-trigger">
-                            <button class="button" onclick=self.link.callback(|_| Msg::ToggleDropdown)>
-                                <span class="generic-status">{cat.display()}</span>
-                                <span class="icon">
-                                    <ChevronDown />
-                                </span>
-                            </button>
+                        <button class="button" onclick=self.link.callback(|_| Msg::ToggleDropdown)>
+                        <span class="generic-status">{cat.display()}</span>
+                        <span class="icon">
+                        <ChevronDown />
+                        </span>
+                        </button>
                         </div>
                         <div class="dropdown-menu">
-                            <div class="dropdown-content">
-                                { dropdown_item(UserStatusCategory::Working) }
-                                { dropdown_item(UserStatusCategory::Away) }
-                                { dropdown_item(UserStatusCategory::Out) }
-                            </div>
-                        </div>
+                        <div class="dropdown-content">
+                        { dropdown_item(UserStatusCategory::Working) }
+                    { dropdown_item(UserStatusCategory::Away) }
+                    { dropdown_item(UserStatusCategory::Out) }
                     </div>
+                        </div>
+                        </div>
                 }
             };
 
@@ -173,31 +185,35 @@ impl Component for StatusWindow {
                 EditState::NotEditing => html! {
                     <div class="level">
                         <div class="level-left">
-                            <span class="generic-status">{UserStatusCategory::from(self.state.user_status.clone()).display()}</span>
+                        <span class="generic-status">{UserStatusCategory::from(self.state.user_status.clone()).display()}</span>
                         </div>
                         <div class="level-right">
-                            <span class="is-clickable px-2" onclick=self.link.callback(|_| Msg::EditText)>
-                                <Edit3 size=Some(32) />
-                            </span>
+                        <span class="is-clickable px-2" onclick=self.link.callback(|_| Msg::EditText)>
+                        <Edit3 size=Some(32) />
+                        </span>
                         </div>
-                    </div>
+                        </div>
                 },
                 EditState::Editing(cat) => html! {
                     // meow
                     <div class="level">
                         <div class="level-left">
-                            { dropdown(*cat) }
-                        </div>
+                        { dropdown(*cat) }
+                    </div>
                         <div class="level-right">
                         </div>
-                    </div>
+                        </div>
                 },
                 _ => html! {},
             }
         };
 
         let task_title = || match &self.state.user_status {
-            UserStatus::Working(task) => html! { <span class="subject bold">{&task.title}</span> },
+            UserStatus::Working(_) => if let Some(t) = &self.state.current_task {
+                html! { <span class="subject bold">{&t.title}</span> }
+            } else {
+                html! { <span class="subject">{"Idle"}</span> }
+            },
             UserStatus::Away(reason) => html! { <span class="subject">{reason}</span> },
             UserStatus::Out => html! { <span class="subject">{"Out for now"}</span> },
         };
@@ -245,29 +261,29 @@ impl Component for StatusWindow {
             EditState::Editing(_) => html! {
                 <div class="has-text-right">
                     <span onclick=self.link.callback(|_| Msg::CancelEdits) class="is-clickable px-2">
-                        <X size=Some(32) />
+                    <X size=Some(32) />
                     </span>
                     <span onclick=self.link.callback(|_| Msg::ConfirmEdits) class="is-clickable px-2">
-                        <Check size=Some(32) />
+                    <Check size=Some(32) />
                     </span>
-                </div>
+                    </div>
             },
         };
 
         html! {
             <div id="status-window">
                 <div id="header" class="pb-2">
-                    { header() }
-                </div>
-                <div id="body">
-                    <button class="button" onclick=self.link.callback(|_| Msg::WebSocket(WebSocketAction::Connect))>{"connect"}</button>
-                    <button class="button" onclick=self.link.callback(|_| Msg::WebSocket(WebSocketAction::Send(false)))>{"send"}</button>
-                    { body() }
-                </div>
-                <div id="footer" class="pt-2">
-                    { footer() }
-                </div>
+                { header() }
             </div>
+                <div id="body">
+                <button class="button" onclick=self.link.callback(|_| Msg::WebSocket(WebSocketAction::Connect))>{"connect"}</button>
+                <button class="button" onclick=self.link.callback(|_| Msg::WebSocket(WebSocketAction::Send(false)))>{"send"}</button>
+                { body() }
+            </div>
+                <div id="footer" class="pt-2">
+                { footer() }
+            </div>
+                </div>
         }
     }
 }
@@ -275,18 +291,27 @@ impl Component for StatusWindow {
 impl StatusWindow {
     fn update_current_task_name(&mut self, new_name: &str) {
         if let EditState::Editing(UserStatusCategory::Working) = self.state.edit_state {
-            if let UserStatus::Working(mut t) = self.state.user_status.clone() {
-                t.title = String::from(new_name);
-                self.state.user_status = UserStatus::Working(t);
+            use chrono::prelude::*;
+
+            if let UserStatus::Working(_) = self.state.user_status.clone() {
+                if let Some(t) = self.state.current_task.as_mut() {
+                    t.title = String::from(new_name);
+                } else {
+                    self.state.current_task = Some(Task {
+                        id: None,
+                        creator_id: 1, // TODO use actual id
+                        date_added: Local::now(),
+                        title: new_name.to_string(),
+                        status: TaskStatus::NotStarted, 
+                    })
+                };
+                self.state.user_status = UserStatus::Working(Some(1));
                 // TODO: reflect changes in the server database
                 // TODO: add history item
                 self.state.edit_state = EditState::NotEditing;
             } else {
-                self.state.user_status = UserStatus::Working(Task {
-                    date_added: chrono::Local::now(),
-                    title: new_name.to_string(),
-                    status: TaskStatus::InProgress(0.0),
-                });
+                // TODO: update with correct task id
+                self.state.user_status = UserStatus::Working(Some(1));
                 // Add a new task with the new name
                 // TODO: add task in the server database
                 // TODO: add history item
@@ -329,11 +354,11 @@ impl StatusWindow {
                     }
                 });
 
-                let task =
+                let ws_task =
                     WebSocketService::connect("ws://localhost:9001/", callback, notification)
                     .unwrap();
 
-                self.ws = Some(task);
+                self.ws = Some(ws_task);
                 log::info!("done?");
             }
             WebSocketAction::Disconnect => { log::warn!("Disconnecting") }

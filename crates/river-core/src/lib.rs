@@ -25,7 +25,7 @@ pub enum WebSocketAction {
 /// This type is an expected response from a websocket connection.
 #[derive(Deserialize, Debug)]
 pub struct WebSocketResponseBody {
-    value: u32
+    pub value: u32
 }
 
 pub type WebSocketResponse = Result<WebSocketResponseBody, anyhow::Error>;
@@ -33,7 +33,7 @@ pub type WebSocketResponse = Result<WebSocketResponseBody, anyhow::Error>;
 /// This type is used as a request which sent to websocket connection.
 #[derive(Serialize, Debug)]
 pub struct WebSocketRequest {
-    value: u32,
+    pub value: u32,
 }
 
 /// An error with a message.
