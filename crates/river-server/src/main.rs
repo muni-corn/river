@@ -1,14 +1,19 @@
-use std::{net::TcpListener, thread::spawn};
+#![feature(proc_macro_hygiene, decl_macro)]
 
+#[macro_use] extern crate rocket;
+
+use std::{net::TcpListener, thread::spawn};
 use tungstenite::accept;
+use rocket::routes;
 
 mod api;
 mod db;
-mod queries;
+
+use api::*;
 
 fn main() {
     let server = TcpListener::bind("127.0.0.1:9001").unwrap();
-    rocket::ignite().mount("/", routes![hello]).launch();
+    // rocket::ignite().mount("/", routes![hello]).launch();
     handle_websockets(server);
 }
 

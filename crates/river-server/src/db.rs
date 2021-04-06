@@ -1,13 +1,11 @@
-use diesel::pg::PgConnection;
-use diesel::prelude::*;
-use diesel::Connection;
-use diesel::ConnectionResult;
+use diesel::{
+    pg::PgConnection,
+    prelude::{ConnectionError, ExpressionMethods, QueryDsl, RunQueryDsl},
+    Connection,
+};
 use dotenv::dotenv;
-use river_core::schema;
-use river_core::TaskId;
-use river_core::UserId;
+use river_core::{schema, TaskId, UserId};
 use std::env;
-use std::error::Error;
 
 pub fn connect() -> DbResult<PgConnection> {
     dotenv().ok();
