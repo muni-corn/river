@@ -9,4 +9,5 @@ tungstenite = "0.13.0" # Lightweight stream-based WebSocket implementation
 postgres = "0.19.1" # A native, synchronous PostgreSQL client
 river-core = { path = "../river-core/" }
 rocket = "0.4.7" # Web framework for nightly with a focus on ease-of-use, expressibility, and speed. 
-diesel = { version = "1.4", features = ["postgres"] }
+diesel = { version = "1.4", features = ["postgres"] } # A safe, extensible ORM and Query Builder for PostgreSQL, SQLite, and MySQL
+dotenv = "0.15" # A `dotenv` implementation for Rust
