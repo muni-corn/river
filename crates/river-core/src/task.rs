@@ -20,7 +20,7 @@ pub enum TaskStatus {
 
 #[derive(Deserialize, Serialize, Clone, Debug)]
 pub struct Task {
-    pub id: TaskId, // should be an option?
+    pub id: Option<TaskId>, // no id means it's not in the database
     pub date_added: DateTime<Local>,
     pub title: String,
     pub status: TaskStatus,
@@ -67,7 +67,7 @@ impl Queryable<crate::schema::tasks::SqlType, crate::Db> for Task {
         };
 
         Self {
-            id,
+            id: Some(id),
             date_added: date_added.with_timezone(&Local),
             title,
             status
