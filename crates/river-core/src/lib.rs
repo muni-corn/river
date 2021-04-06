@@ -3,9 +3,9 @@
 use std::fmt::Display;
 use serde::{Deserialize, Serialize};
 
-mod task;
-mod user;
-mod schema;
+pub mod task;
+pub mod user;
+pub mod schema;
 
 pub use task::*;
 pub use user::*;
