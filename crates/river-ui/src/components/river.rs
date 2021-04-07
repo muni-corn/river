@@ -1,8 +1,9 @@
+use river_core::UserId;
 use yew::prelude::*;
 use super::{HistoryList, StatusWindow, TodoList};
 
 pub struct River {
-    user_id: String,
+    user_id: UserId,
 }
 
 pub enum Msg {
@@ -11,7 +12,7 @@ pub enum Msg {
 
 #[derive(Clone, Properties)]
 pub struct Props {
-    pub user_id: String,
+    pub user_id: UserId,
 }
 
 impl Component for River {
@@ -36,9 +37,9 @@ impl Component for River {
     fn view(&self) -> Html {
         html! {
             <div class="column">
-                <HistoryList user_id=self.user_id.clone() />
-                <StatusWindow user_id=self.user_id.clone() />
-                <TodoList user_id=self.user_id.clone() />
+                <HistoryList user_id=self.user_id />
+                <StatusWindow user_id=self.user_id />
+                <TodoList user_id=self.user_id />
             </div>
         }
     }

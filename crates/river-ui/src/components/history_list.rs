@@ -1,7 +1,8 @@
+use river_core::UserId;
 use yew::prelude::*;
 
 pub struct HistoryList {
-    user_id: String,
+    user_id: UserId,
 }
 
 pub enum Msg {
@@ -9,7 +10,7 @@ pub enum Msg {
 
 #[derive(Clone, Properties)]
 pub struct Props {
-    pub user_id: String,
+    pub user_id: UserId,
 }
 
 impl Component for HistoryList {

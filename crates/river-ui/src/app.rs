@@ -37,7 +37,7 @@ impl Component for App {
     fn view(&self) -> Html {
         html! {
             <div class="column">
-                <River user_id=String::from("asdf") />
+                <River user_id=10 />
             </div>
         }
     }

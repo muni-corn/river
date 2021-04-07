@@ -6,7 +6,7 @@ use yew_feather::{check::Check, chevron_down::ChevronDown, edit_3::Edit3, x::X};
 
 pub struct StatusWindow {
     link: ComponentLink<Self>,
-    user_id: String,
+    user_id: UserId,
     state: State,
 
     is_dropdown_active: bool,
@@ -43,7 +43,7 @@ pub enum Msg {
 
 #[derive(Clone, Properties)]
 pub struct Props {
-    pub user_id: String,
+    pub user_id: UserId,
 }
 
 impl Component for StatusWindow {
