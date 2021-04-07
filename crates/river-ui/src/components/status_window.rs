@@ -1,7 +1,7 @@
 use river_core::*;
 use serde::{Deserialize, Serialize};
 
-use yew::{prelude::*, services::websocket::*, format::Json};
+use yew::{format::Json, prelude::*, services::websocket::*};
 use yew_feather::{check::Check, chevron_down::ChevronDown, edit_3::Edit3, x::X};
 
 pub struct StatusWindow {
@@ -12,6 +12,7 @@ pub struct StatusWindow {
     is_dropdown_active: bool,
 
     ws: Option<WebSocketTask>,
+    subscribed: bool,
 }
 
 struct State {
@@ -39,6 +40,8 @@ pub enum Msg {
 
     WebSocket(WebSocketAction),
     WebSocketResponseReady(WebSocketResponse),
+
+    DoTheSubscribe,
 }
 
 #[derive(Clone, Properties)]
@@ -54,7 +57,7 @@ impl Component for StatusWindow {
     fn create(props: Self::Properties, link: ComponentLink<Self>) -> Self {
         use chrono::prelude::*;
 
-        Self {
+        let mut result = Self {
             link,
             user_id: props.user_id,
             state: State {
@@ -72,7 +75,12 @@ impl Component for StatusWindow {
             },
             is_dropdown_active: false,
             ws: None,
-        }
+            subscribed: false,
+        };
+
+        result.connect_to_websocket();
+
+        result
     }
 
     fn update(&mut self, msg: Self::Message) -> ShouldRender {
@@ -134,7 +142,19 @@ impl Component for StatusWindow {
             }
             Msg::Nothing => (),
             Msg::WebSocket(action) => self.do_web_socket(action),
-            Msg::WebSocketResponseReady(res) => log::info!("{:?}", res),
+            Msg::WebSocketResponseReady(res) => {
+                log::info!("{:#?}", res);
+                match res {
+                    Ok(r) => match r {
+                        WebSocketResponseBody::SubscribeSuccessful => self.subscribed = true,
+                        WebSocketResponseBody::UserUpdate(id, action) => self.update_to_user_action(action),
+                    }
+                    Err(e) => log::error!("{}", e)
+                }
+            },
+            Msg::DoTheSubscribe => {
+                self.do_web_socket(WebSocketAction::Send(WebSocketRequest::SubscribeToUser(10)));
+            }
         }
         true
     }
@@ -164,20 +184,20 @@ impl Component for StatusWindow {
                     <div class={ dropdown_class() }>
                         <div class="dropdown-trigger">
                         <button class="button" onclick=self.link.callback(|_| Msg::ToggleDropdown)>
-                        <span class="generic-status">{cat.display()}</span>
-                        <span class="icon">
-                        <ChevronDown />
-                        </span>
+                            <span class="generic-status">{cat.display()}</span>
+                            <span class="icon">
+                                <ChevronDown />
+                            </span>
                         </button>
-                        </div>
-                        <div class="dropdown-menu">
-                        <div class="dropdown-content">
-                        { dropdown_item(UserStatusCategory::Working) }
-                    { dropdown_item(UserStatusCategory::Away) }
-                    { dropdown_item(UserStatusCategory::Out) }
                     </div>
+                        <div class="dropdown-menu">
+                            <div class="dropdown-content">
+                                { dropdown_item(UserStatusCategory::Working) }
+                                { dropdown_item(UserStatusCategory::Away) }
+                                { dropdown_item(UserStatusCategory::Out) }
+                            </div>
                         </div>
-                        </div>
+                    </div>
                 }
             };
 
@@ -185,35 +205,45 @@ impl Component for StatusWindow {
                 EditState::NotEditing => html! {
                     <div class="level">
                         <div class="level-left">
-                        <span class="generic-status">{UserStatusCategory::from(self.state.user_status.clone()).display()}</span>
+                            <span class="generic-status">{UserStatusCategory::from(self.state.user_status.clone()).display()}</span>
                         </div>
-                        <div class="level-right">
-                        <span class="is-clickable px-2" onclick=self.link.callback(|_| Msg::EditText)>
-                        <Edit3 size=Some(32) />
-                        </span>
-                        </div>
-                        </div>
+                        {
+                            if !self.subscribed {
+                                html! {
+                                    <div class="level-right">
+                                        <span class="is-clickable px-2" onclick=self.link.callback(|_| Msg::EditText)>
+                                            <Edit3 size=Some(32) />
+                                        </span>
+                                    </div>
+                                }
+                            } else {
+                                html! {}
+                            }
+                        }
+                    </div>
                 },
                 EditState::Editing(cat) => html! {
                     // meow
                     <div class="level">
                         <div class="level-left">
-                        { dropdown(*cat) }
-                    </div>
+                            { dropdown(*cat) }
+                        </div>
                         <div class="level-right">
                         </div>
-                        </div>
+                    </div>
                 },
                 _ => html! {},
             }
         };
 
         let task_title = || match &self.state.user_status {
-            UserStatus::Working(_) => if let Some(t) = &self.state.current_task {
-                html! { <span class="subject bold">{&t.title}</span> }
-            } else {
-                html! { <span class="subject">{"Idle"}</span> }
-            },
+            UserStatus::Working(_) => {
+                if let Some(t) = &self.state.current_task {
+                    html! { <span class="subject bold">{&t.title}</span> }
+                } else {
+                    html! { <span class="subject">{"Idle"}</span> }
+                }
+            }
             UserStatus::Away(reason) => html! { <span class="subject">{reason}</span> },
             UserStatus::Out => html! { <span class="subject">{"Out for now"}</span> },
         };
@@ -261,23 +291,32 @@ impl Component for StatusWindow {
             EditState::Editing(_) => html! {
                 <div class="has-text-right">
                     <span onclick=self.link.callback(|_| Msg::CancelEdits) class="is-clickable px-2">
-                    <X size=Some(32) />
+                        <X size=Some(32) />
                     </span>
                     <span onclick=self.link.callback(|_| Msg::ConfirmEdits) class="is-clickable px-2">
-                    <Check size=Some(32) />
+                        <Check size=Some(32) />
                     </span>
-                    </div>
+                </div>
             },
         };
 
         html! {
             <div id="status-window">
+                {
+                    if self.subscribed {
+                        html! {
+                            <button class="button" disabled=true>{"Watching user 10"}</button>
+                        }
+                    } else {
+                        html! {
+                            <button class="button" onclick=self.link.callback(|_| Msg::DoTheSubscribe)>{"Watch user 10"}</button>
+                        }
+                    }
+                }
                 <div id="header" class="pb-2">
                 { header() }
             </div>
                 <div id="body">
-                <button class="button" onclick=self.link.callback(|_| Msg::WebSocket(WebSocketAction::Connect))>{"connect"}</button>
-                <button class="button" onclick=self.link.callback(|_| Msg::WebSocket(WebSocketAction::Send(false)))>{"send"}</button>
                 { body() }
             </div>
                 <div id="footer" class="pt-2">
@@ -302,7 +341,7 @@ impl StatusWindow {
                         creator_id: 1, // TODO use actual id
                         date_added: Local::now(),
                         title: new_name.to_string(),
-                        status: TaskStatus::NotStarted, 
+                        status: TaskStatus::NotStarted,
                     })
                 };
                 self.state.user_status = UserStatus::Working(Some(1));
@@ -315,8 +354,20 @@ impl StatusWindow {
                 // Add a new task with the new name
                 // TODO: add task in the server database
                 // TODO: add history item
+                self.state.current_task = Some(Task {
+                    id: None,
+                    creator_id: 1, // TODO use actual id
+                    date_added: Local::now(),
+                    title: new_name.to_string(),
+                    status: TaskStatus::NotStarted,
+                });
                 self.state.edit_state = EditState::NotEditing;
             }
+
+            self.do_web_socket(WebSocketAction::Send(WebSocketRequest::UpdateUser(
+                10,
+                UserAction::ChangeTask(self.state.current_task.clone()),
+            )));
         }
     }
 
@@ -326,6 +377,10 @@ impl StatusWindow {
             // TODO: reflect changes in the server database
             // TODO: add history item
             self.state.edit_state = EditState::NotEditing;
+            self.do_web_socket(WebSocketAction::Send(WebSocketRequest::UpdateUser(
+                10,
+                UserAction::SetAway(String::from(new_reason)),
+            )));
         }
     }
 
@@ -335,6 +390,10 @@ impl StatusWindow {
             // TODO: reflect changes in the server database
             // TODO: add history item
             self.state.edit_state = EditState::NotEditing;
+            self.do_web_socket(WebSocketAction::Send(WebSocketRequest::UpdateUser(
+                10,
+                UserAction::SetOut,
+            )));
         }
     }
 
@@ -344,33 +403,51 @@ impl StatusWindow {
 
     fn do_web_socket(&mut self, action: WebSocketAction) {
         match action {
-            WebSocketAction::Connect => {
-                log::info!("connecting");
-                let callback = self.link.callback(|Json(data): Json<WebSocketResponse>| Msg::WebSocketResponseReady(data));
-                let notification = self.link.batch_callback(|status| match status {
-                    WebSocketStatus::Opened => vec![],
-                    WebSocketStatus::Closed | WebSocketStatus::Error => {
-                        vec![WebSocketAction::Terminated.into()]
-                    }
-                });
-
-                let ws_task =
-                    WebSocketService::connect("ws://localhost:9001/", callback, notification)
-                    .unwrap();
-
-                self.ws = Some(ws_task);
-                log::info!("done?");
+            WebSocketAction::Connect => self.connect_to_websocket(),
+            WebSocketAction::Disconnect => {
+                log::warn!("Disconnecting")
             }
-            WebSocketAction::Disconnect => { log::warn!("Disconnecting") }
-            WebSocketAction::Send(as_binary) => {
-                let request = WebSocketRequest { value: 321 };
-                if as_binary {
-                    self.ws.as_mut().unwrap().send_binary(Json(&request));
+            WebSocketAction::Send(req) => {
+                self.ws.as_mut().unwrap().send(Json(&req));
+            }
+            WebSocketAction::Terminated => {
+                log::error!("WS connection terminated")
+            }
+        }
+    }
+
+    fn connect_to_websocket(&mut self) {
+        log::info!("connecting");
+        let callback = self
+            .link
+            .callback(|Json(data): Json<WebSocketResponse>| Msg::WebSocketResponseReady(data));
+        let notification = self.link.batch_callback(|status| match status {
+            WebSocketStatus::Opened => vec![],
+            WebSocketStatus::Closed | WebSocketStatus::Error => {
+                vec![WebSocketAction::Terminated.into()]
+            }
+        });
+
+        let ws_task =
+            WebSocketService::connect("ws://localhost:8801/", callback, notification).unwrap();
+
+        self.ws = Some(ws_task);
+        log::info!("done?");
+    }
+
+    fn update_to_user_action(&mut self, action: UserAction) {
+        match action {
+            UserAction::ChangeTask(t_opt) => {
+                self.state.user_status = if let Some(task) = &t_opt {
+                    UserStatus::Working(task.id)
                 } else {
-                    self.ws.as_mut().unwrap().send(Json(&request));
-                }
+                    UserStatus::Working(None)
+                };
+                self.state.current_task = t_opt;
             }
-            WebSocketAction::Terminated => {log::error!("WS connection terminated")}
+            UserAction::SetAway(reason) => self.state.user_status = UserStatus::Away(reason),
+            UserAction::SetOut => self.state.user_status = UserStatus::Out,
+            UserAction::SetPrivate => {} // TODO
         }
     }
 }
