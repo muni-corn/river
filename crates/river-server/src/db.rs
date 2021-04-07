@@ -1,10 +1,11 @@
+use crate::schema;
 use diesel::{
     pg::PgConnection,
     prelude::{ConnectionError, ExpressionMethods, QueryDsl, RunQueryDsl},
     Connection,
 };
 use dotenv::dotenv;
-use river_core::{schema, TaskId, UserId};
+use river_core::{TaskId, UserId};
 use std::env;
 
 pub fn connect() -> DbResult<PgConnection> {

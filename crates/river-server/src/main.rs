@@ -4,11 +4,16 @@
 
 use std::{net::TcpListener, thread::{spawn, Builder}};
 use rocket::{Config, config::Environment, routes};
+#[macro_use]
+extern crate diesel;
 
 mod api;
 mod db;
+mod models;
+mod schema;
 
 use api::*;
+type Db = diesel::pg::Pg;
 
 fn main() {
     let api_thread_handle = Builder::new().name(String::from("api")).spawn(|| {
