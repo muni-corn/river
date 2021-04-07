@@ -13,26 +13,29 @@ pub type AsBinary = bool;
 pub enum WebSocketAction {
     Connect,
     Disconnect,
-    Send(AsBinary),
+    Send(WebSocketRequest),
     Terminated,
 }
 
 /// This type is an expected response from a websocket connection.
-#[derive(Deserialize, Debug)]
-pub struct WebSocketResponseBody {
-    pub value: u32
+#[derive(Serialize, Deserialize, Debug)]
+pub enum WebSocketResponseBody {
+    SubscribeSuccessful,
+    UserUpdate(UserId, UserAction)
 }
 
 pub type WebSocketResponse = Result<WebSocketResponseBody, anyhow::Error>;
 
 /// This type is used as a request which sent to websocket connection.
-#[derive(Serialize, Debug)]
-pub struct WebSocketRequest {
-    pub value: u32,
+#[derive(Deserialize, Serialize, Debug)]
+pub enum WebSocketRequest {
+    SubscribeToUser(UserId),
+    UpdateUser(UserId, UserAction),
+
 }
 
 /// An error with a message.
-#[derive(Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug)]
 pub struct WebSocketError(String);
 
 impl From<anyhow::Error> for WebSocketError {
@@ -45,4 +48,12 @@ impl Display for WebSocketError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "error with websockets: {}", self.0)
     }
+}
+
+#[derive(Deserialize, Serialize, Clone, Debug)]
+pub enum UserAction {
+    ChangeTask(Option<Task>),
+    SetAway(String),
+    SetOut,
+    SetPrivate,
 }
