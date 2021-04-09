@@ -34,8 +34,9 @@ impl Component for HistoryList {
     fn view(&self) -> Html {
         html! {
             <div id="history-list">
-                { "History" }
-                
+                <div class="has-text-centered">
+                    { "History" }
+                </div>
             </div>
         }
     }

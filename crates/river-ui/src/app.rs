@@ -37,12 +37,24 @@ impl Component for App {
     fn view(&self) -> Html {
         html! {
             <div class="container">
-                <div class="columns">
+                <div class="columns is-vcentered">
                     <div class="column">
                         <River user_id=10 />
                     </div>
                     <div class="column">
-                        { "team members list" }
+                        <div class="container">
+                            <div class="card">
+                                <div class="card-header">
+                                    <div class="card-header-title">
+                                        <span class="title is-2">{"Hello!"}</span>
+                                    </div>
+                                </div>
+                                <div class="card-content">
+                                    <p>{"Welcome to River."}</p>
+                                    <p>{"Your teammates will appear in this list. If you need to know what they're working on, check in here."}</p>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>

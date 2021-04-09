@@ -17,13 +17,13 @@ impl Component for TodoList {
 
     type Properties = Props;
 
-    fn create(props: Self::Properties, link: ComponentLink<Self>) -> Self {
+    fn create(props: Self::Properties, _link: ComponentLink<Self>) -> Self {
         Self {
             user_id: props.user_id,
         }
     }
 
-    fn update(&mut self, msg: Self::Message) -> ShouldRender {
+    fn update(&mut self, _msg: Self::Message) -> ShouldRender {
         true
     }
 
@@ -34,7 +34,9 @@ impl Component for TodoList {
     fn view(&self) -> Html {
         html! {
             <div id="todo-list">
-                { "To-do" }
+                <div class="has-text-centered">
+                    { "To-do" }
+                </div>
             </div>
         }
     }
